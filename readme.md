@@ -7,6 +7,52 @@ organizing visual media. It evolves MFLUX-WebUI into one coherent photo-and-vide
 product while keeping model limits, licenses and runtime state visible instead of
 pretending every backend works the same way.
 
+## Dev-Branch (functional frontend)
+
+The `dev` branch replaces the previous mock-only React studio with a **working,
+minimal frontend** that actually talks to the local MLX backend:
+
+- **Bilder erzeugen** — prompt → Bild, mit Live-Fortschritt (async Job-API).
+- **Bild bearbeiten** — vorhandenes Bild hochladen oder aus der Galerie wählen und
+  per img2img ändern („entferne den Hut …“).
+- **Galerie** — deine erzeugten Bilder, pro Benutzer getrennt.
+- **Benutzer** — mehrere Benutzer mit eigenem, getrenntem Bildbereich (im Browser
+  gespeichert).
+- **Einstellungen** — Backend-Status + Modellübersicht.
+- Start-/Home-Tab und Time Lens wurden entfernt.
+- Die Oberfläche ist deutsch, schlank und **Firefox-kompatibel**.
+
+### Ein-Skript-Setup
+
+```bash
+chmod +x setup.sh
+./setup.sh          # Installiert alles + startet Backend & WebUI
+```
+
+- Backend + WebUI laufen standardmäßig auf **http://0.0.0.0:7861** (im Netzwerk
+  erreichbar). Host überschreiben: `MFLUX_HOST=127.0.0.1 ./setup.sh`.
+- Nach Änderungen am Frontend: `./setup.sh --rebuild`.
+- Für Entwicklung (Vite mit Live-Reload + Proxy auf das Backend):
+  `./setup.sh --dev` → UI auf http://localhost:5173.
+
+### Manuell (ohne Skript)
+
+```bash
+# Backend
+python3.12 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python api_main.py --host 0.0.0.0 --port 7861
+
+# Frontend (einmal bauen)
+cd frontend && npm install && npm run build
+```
+
+Öffne dann http://<dein-mac>:7861 im Browser.
+
+---
+
+*Nachfolgend die Original-Dokumentation des Upstream-Projekts.*
+
 <img src="frontend/public/assets/mlx-media-emblem.png" alt="MLX Media emblem" width="180" />
 
 ## What works today
