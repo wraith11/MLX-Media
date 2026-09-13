@@ -15,9 +15,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Brush,
   Eraser,
-  Invert,
   Lasso,
   Maximize,
+  Repeat,
   Trash2,
 } from "lucide-react";
 
