@@ -113,18 +113,25 @@ case "${1:-}" in
   --serve) MODE="prod" ;;
   --dev) MODE="dev" ;;
   --rebuild) MODE="rebuild" ;;
+  --models) MODE="models" ;;
   --help|-h)
     echo "MLX Media Setup"
     echo "  ./setup.sh           Erstinstallation + Start"
     echo "  ./setup.sh --serve   Nur starten (Backend + gebautes Frontend)"
     echo "  ./setup.sh --dev     Starten im Entwicklungsmodus (Vite)"
     echo "  ./setup.sh --rebuild Frontend neu bauen (nach Änderungen)"
+    echo "  ./setup.sh --models  Inpainting-Modell (FLUX.1-Fill-dev) vorab laden"
     exit 0
     ;;
 esac
 
 if [ "$MODE" = "rebuild" ]; then
   build_frontend
+  exit 0
+fi
+
+if [ "$MODE" = "models" ]; then
+  predownload_models
   exit 0
 fi
 
