@@ -43,6 +43,7 @@ chmod +x setup.sh
 - Backend + WebUI laufen standardmäßig auf **http://0.0.0.0:7861** (im Netzwerk
   erreichbar). Host überschreiben: `MFLUX_HOST=127.0.0.1 ./setup.sh`.
 - Nach Änderungen am Frontend: `./setup.sh --rebuild`.
+- Inpainting-Modell vorab laden (optional, groß): `./setup.sh --models`.
 - Für Entwicklung (Vite mit Live-Reload + Proxy auf das Backend):
   `./setup.sh --dev` → UI auf http://localhost:5173.
 
