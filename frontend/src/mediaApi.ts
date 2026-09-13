@@ -15,6 +15,7 @@ export type JobStatusValue =
 export type JobTypeValue =
   | "txt2img"
   | "img2img"
+  | "inpaint"
   | "controlnet"
   | "upscale";
 
