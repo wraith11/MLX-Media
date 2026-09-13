@@ -543,6 +543,10 @@ class APIServer(BaseHTTPRequestHandler):
         num_images = int(data.get("num_images", 1))
         low_ram = bool(data.get("low_ram", False))
         seed = data.get("seed")
+        if seed is None:
+            seed = "random"
+        elif not isinstance(seed, str):
+            seed = str(seed)
 
         try:
             images, info, used_prompt = generate_fill_gradio(
