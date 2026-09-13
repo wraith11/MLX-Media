@@ -80,6 +80,14 @@ export interface GenerateParams {
   upscale_factor?: number; // for upscale
 }
 
+export interface MaskFromTextResult {
+  mask: string; // base64 (white = region)
+  box: number[];
+  width: number;
+  height: number;
+  model_used: string | null;
+}
+
 async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
     cache: "no-store",
@@ -158,12 +166,6 @@ export function dataUrlToBase64(dataUrl: string): string {
 
 export function base64ToDataUrl(base64: string, mime = "image/png"): string {
   return `data:${mime};base64,${base64}`;
-export interface MaskFromTextResult {
-  mask: string; // base64 (white = region)
-  box: number[];
-  width: number;
-  height: number;
-  model_used: string | null;
 }
 
 /**
@@ -181,5 +183,4 @@ export async function maskFromText(
       text,
     }),
   });
-}
 }
