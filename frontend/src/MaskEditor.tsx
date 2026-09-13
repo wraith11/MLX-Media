@@ -16,7 +16,7 @@ import {
   Eraser,
   Invert,
   Lasso,
-  RotateCcw,
+  Maximize,
   Trash2,
 } from "lucide-react";
 
