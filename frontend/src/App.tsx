@@ -12,6 +12,7 @@
  * No dependency on the old mock-only UI or the i18n dictionary, which keeps the
  * TypeScript build deterministic.
  */
+import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import {
   Download,
