@@ -76,6 +76,7 @@ export interface GenerateParams {
   num_images?: number;
   init_images?: string[]; // base64, for img2img
   image_strength?: number; // denoising strength
+  mask?: string; // base64 mask (white = regenerate), for inpaint
   upscale_factor?: number; // for upscale
 }
 
