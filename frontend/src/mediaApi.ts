@@ -158,4 +158,28 @@ export function dataUrlToBase64(dataUrl: string): string {
 
 export function base64ToDataUrl(base64: string, mime = "image/png"): string {
   return `data:${mime};base64,${base64}`;
+export interface MaskFromTextResult {
+  mask: string; // base64 (white = region)
+  box: number[];
+  width: number;
+  height: number;
+  model_used: string | null;
+}
+
+/**
+ * Ask the backend to locate an object described by `text` and return a mask.
+ * Falls back to a centered ellipse on the server when no VLM is available.
+ */
+export async function maskFromText(
+  imageDataUrl: string,
+  text: string,
+): Promise<MaskFromTextResult> {
+  return requestJson<MaskFromTextResult>("/api/v1/mask-from-text", {
+    method: "POST",
+    body: JSON.stringify({
+      image: dataUrlToBase64(imageDataUrl),
+      text,
+    }),
+  });
+}
 }
