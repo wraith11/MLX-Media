@@ -124,11 +124,9 @@ function Spinner() {
 /* ── Pages ───────────────────────────────────────────────────────── */
 
 function CreatePage({
-  user,
   onGenerated,
   notify,
 }: {
-  user: string;
   onGenerated: (img: StoredImage) => void;
   notify: (msg: string) => void;
 }) {
