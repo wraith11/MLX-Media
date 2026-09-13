@@ -13,14 +13,25 @@ The `dev` branch replaces the previous mock-only React studio with a **working,
 minimal frontend** that actually talks to the local MLX backend:
 
 - **Bilder erzeugen** — prompt → Bild, mit Live-Fortschritt (async Job-API).
-- **Bild bearbeiten** — vorhandenes Bild hochladen oder aus der Galerie wählen und
-  per img2img ändern („entferne den Hut …“).
+- **Bild bearbeiten** — **echtes maskenbasiertes Inpainting** auf bereits
+  erzeugten oder hochgeladenen Bildern:
+  - manuell per **Pinsel**, **Lasso** oder **Radierer** (Canvas-Masken-Editor),
+  - oder per **Textbeschreibung** (Backend lokalisiert das Objekt mit einem
+    MLX-VLM und erzeugt automatisch eine Maske; ohne VLM wird eine
+    Fallback-Maske in der Bildmitte gesetzt und manuell feinjustiert).
 - **Galerie** — deine erzeugten Bilder, pro Benutzer getrennt.
 - **Benutzer** — mehrere Benutzer mit eigenem, getrenntem Bildbereich (im Browser
   gespeichert).
 - **Einstellungen** — Backend-Status + Modellübersicht.
 - Start-/Home-Tab und Time Lens wurden entfernt.
 - Die Oberfläche ist deutsch, schlank und **Firefox-kompatibel**.
+
+### Inpainting-Hinweis
+
+Der Inpainting-Pfad nutzt **FLUX.1-Fill-dev** (`backend/fill_manager.py`), das beim
+ersten Inpainting automatisch von Hugging Face heruntergeladen wird
+(zusätzlich zum Flux2-Klein-Modell für „Bilder erzeugen“). Dafür ist etwas mehr
+Festplatten- und Arbeitsspeicher nötig.
 
 ### Ein-Skript-Setup
 
