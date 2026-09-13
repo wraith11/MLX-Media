@@ -279,15 +279,20 @@ function CreatePage({
 function EditPage({
   user,
   library,
+  onGenerated,
   notify,
 }: {
   user: string;
   library: StoredImage[];
+  onGenerated: (img: StoredImage) => void;
   notify: (msg: string) => void;
 }) {
   const [image, setImage] = useState<string | null>(null);
   const [prompt, setPrompt] = useState("");
-  const [strength, setStrength] = useState(0.5);
+  const [mask, setMask] = useState<string | null>(null);
+  const [maskMode, setMaskMode] = useState<"manual" | "text">("manual");
+  const [textTarget, setTextTarget] = useState("");
+  const [maskBusy, setMaskBusy] = useState(false);
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState(0);
   const [stage, setStage] = useState("");
@@ -304,19 +309,48 @@ function EditPage({
   const pickImage = (dataUrl: string) => {
     setImage(dataUrl);
     setResult(null);
+    setMask(null);
+    setTextTarget("");
   };
 
   const onUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => setImage(String(reader.result));
+    reader.onload = () => {
+      setImage(String(reader.result));
+      setResult(null);
+      setMask(null);
+    };
     reader.readAsDataURL(file);
     e.target.value = "";
   };
 
+  /** Erzeuge eine Maske per Textbeschreibung über das Backend (VLM). */
+  const generateMaskFromText = async () => {
+    if (!image || !textTarget.trim() || maskBusy) return;
+    setMaskBusy(true);
+    try {
+      const res = await maskFromText(image, textTarget.trim());
+      setMask(base64ToDataUrl(res.mask));
+      notify(
+        res.model_used
+          ? "Maske aus Text erzeugt."
+          : "Kein VLM-Modell gefunden — Zentrum als Maske gesetzt. Maske manuell anpassen.",
+      );
+    } catch (err) {
+      notify(err instanceof Error ? err.message : "Text-Maske fehlgeschlagen.");
+    } finally {
+      setMaskBusy(false);
+    }
+  };
+
   const startEdit = async () => {
     if (!image || !prompt.trim() || running) return;
+    if (maskMode === "manual" && !mask) {
+      notify("Bitte zuerst die Maske mit Pinsel oder Lasso zeichnen.");
+      return;
+    }
     setRunning(true);
     setResult(null);
     setProgress(0);
@@ -324,11 +358,11 @@ function EditPage({
 
     try {
       const submitted = await submitGenerate({
-        type: "img2img",
+        type: "inpaint",
         prompt: prompt.trim(),
         init_images: [dataUrlToBase64(image)],
-        image_strength: strength,
-        guidance: 3.5,
+        mask: mask ? dataUrlToBase64(mask) : undefined,
+        guidance: 30,
       });
       const jobId = submitted.job_id;
 
@@ -345,7 +379,14 @@ function EditPage({
           if (pollRef.current !== null) window.clearInterval(pollRef.current);
           setRunning(false);
           if (job.status === "completed" && job.result?.images?.length) {
-            setResult(base64ToDataUrl(job.result.images[0]));
+            const out = base64ToDataUrl(job.result.images[0]);
+            setResult(out);
+            onGenerated({
+              id: `img-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+              dataUrl: out,
+              prompt: prompt.trim(),
+              createdAt: Date.now(),
+            });
             notify("Bearbeitung fertig.");
           } else {
             setStage(job.error?.message || "Fehlgeschlagen");
@@ -365,86 +406,132 @@ function EditPage({
       <header className="page-head">
         <div>
           <span className="eyebrow">Bild bearbeiten</span>
-          <h1>Vorhandenes Bild ändern</h1>
-          <p>Lade ein Bild hoch oder wähle eines aus deiner Galerie und beschreibe die Änderung.</p>
+          <h1>Inpainting — Bereich ändern</h1>
+          <p>
+            Wähle einen Bereich aus (per Pinsel/Lasso oder Textbeschreibung) und sag, was
+            dort neu entstehen soll.
+          </p>
         </div>
       </header>
 
-      <div className="edit-grid">
-        <section className="panel">
-          <div className="section-title">Ausgangsbild</div>
-          <label className="upload-tile">
-            <Upload size={18} />
-            <span>Bild hochladen</span>
-            <input type="file" accept="image/*" onChange={onUpload} />
-          </label>
-          {library.length > 0 && (
-            <div className="edit-gallery">
-              {library.slice(-12).map((item) => (
-                <button
-                  key={item.id}
-                  className={image === item.dataUrl ? "thumb is-selected" : "thumb"}
-                  onClick={() => pickImage(item.dataUrl)}
-                >
-                  <img src={item.dataUrl} alt="Galerie" />
-                </button>
-              ))}
-            </div>
-          )}
-          {image && (
-            <div className="preview-image">
-              <img src={image} alt="Ausgangsbild" />
-            </div>
-          )}
-        </section>
+      <section className="panel">
+        <div className="section-title">Ausgangsbild</div>
+        <label className="upload-tile">
+          <Upload size={18} />
+          <span>Bild hochladen</span>
+          <input type="file" accept="image/*" onChange={onUpload} />
+        </label>
+        {library.length > 0 && (
+          <div className="edit-gallery">
+            {library.slice(-12).map((item) => (
+              <button
+                key={item.id}
+                className={image === item.dataUrl ? "thumb is-selected" : "thumb"}
+                onClick={() => pickImage(item.dataUrl)}
+              >
+                <img src={item.dataUrl} alt="Galerie" />
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
 
-        <section className="panel">
-          <div className="section-title">Änderung</div>
-          <div className="field">
-            <span>Was soll sich ändern?</span>
-            <textarea
-              rows={4}
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="z.B. entferne den Hut von der Person, mache den Himmel blauer…"
-            />
-          </div>
-          <div className="field">
-            <span>
-              Stärke der Änderung: {Math.round(strength * 100)}%
-            </span>
-            <input
-              type="range"
-              min={0.1}
-              max={1}
-              step={0.05}
-              value={strength}
-              onChange={(e) => setStrength(Number(e.target.value))}
-            />
-          </div>
-          <div className="row-actions">
-            <button className="btn btn-primary" onClick={startEdit} disabled={running || !image || !prompt.trim()}>
-              {running ? <Spinner /> : <Wand2 size={16} />} {running ? "Bearbeite…" : "Anwenden"}
-            </button>
-            {running && (
-              <div className="progress-line">
-                <ProgressBar percent={progress} />
-                <span>{stage}</span>
+      {image && (
+        <>
+          <section className="panel">
+            <div className="section-title">Maske festlegen</div>
+            <div className="mask-mode-tabs">
+              <button
+                className={maskMode === "manual" ? "is-active" : ""}
+                onClick={() => setMaskMode("manual")}
+              >
+                Pinsel / Lasso
+              </button>
+              <button
+                className={maskMode === "text" ? "is-active" : ""}
+                onClick={() => setMaskMode("text")}
+              >
+                Per Text
+              </button>
+            </div>
+
+            {maskMode === "manual" ? (
+              <MaskEditor image={image} onChange={setMask} />
+            ) : (
+              <div className="text-mask-box">
+                <div className="field">
+                  <span>Was soll bearbeitet werden? (Objekt im Bild)</span>
+                  <input
+                    type="text"
+                    value={textTarget}
+                    onChange={(e) => setTextTarget(e.target.value)}
+                    placeholder="z.B. den Hut, das Auto, die Person…"
+                  />
+                </div>
+                <div className="row-actions">
+                  <button
+                    className="btn btn-primary"
+                    onClick={generateMaskFromText}
+                    disabled={maskBusy || !textTarget.trim()}
+                  >
+                    {maskBusy ? <Spinner /> : <Sparkles size={16} />}
+                    {maskBusy ? "Suche…" : "Maske erzeugen"}
+                  </button>
+                  {mask && <span className="muted">Maske erzeugt — im Pinsel-Modus feinjustieren.</span>}
+                </div>
+                {mask && (
+                  <div className="preview-image mask-preview">
+                    <img src={mask} alt="Erzeugte Maske" />
+                  </div>
+                )}
               </div>
             )}
-          </div>
-          {result && (
-            <div className="result-card">
-              <img src={result} alt="Ergebnis" />
-              <div className="result-actions">
-                <a className="btn" href={result} download="bearbeitet.png">
-                  <Download size={15} /> Speichern
-                </a>
-              </div>
+          </section>
+
+          <section className="panel">
+            <div className="section-title">Neu zeichnen</div>
+            <div className="field">
+              <span>Was soll im markierten Bereich entstehen?</span>
+              <textarea
+                rows={4}
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="z.B. eine Mütze, ein blauer Himmel, eine Katze…"
+              />
             </div>
-          )}
-        </section>
-      </div>
+            <div className="row-actions">
+              <button
+                className="btn btn-primary"
+                onClick={startEdit}
+                disabled={
+                  running ||
+                  !image ||
+                  !prompt.trim() ||
+                  (maskMode === "manual" && !mask)
+                }
+              >
+                {running ? <Spinner /> : <Wand2 size={16} />} {running ? "Bearbeite…" : "Inpainting starten"}
+              </button>
+              {running && (
+                <div className="progress-line">
+                  <ProgressBar percent={progress} />
+                  <span>{stage}</span>
+                </div>
+              )}
+            </div>
+            {result && (
+              <div className="result-card">
+                <img src={result} alt="Ergebnis" />
+                <div className="result-actions">
+                  <a className="btn" href={result} download="bearbeitet.png">
+                    <Download size={15} /> Speichern
+                  </a>
+                </div>
+              </div>
+            )}
+          </section>
+        </>
+      )}
     </div>
   );
 }
