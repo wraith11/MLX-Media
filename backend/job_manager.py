@@ -338,6 +338,10 @@ class JobManager:
         guidance = float(params.get("guidance", 30.0))
         num_images = int(params.get("num_images", 1))
         seed = params.get("seed")
+        if seed is None:
+            seed = "random"
+        elif not isinstance(seed, str):
+            seed = str(seed)
         low_ram = bool(params.get("low_ram", False))
 
         progress_callback("stage", "loading_model")
