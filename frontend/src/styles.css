@@ -616,4 +616,120 @@ body {
   .grid-3 {
     grid-template-columns: 1fr;
   }
+/* ── Mask editor (Inpainting) ────────────────────────────────────── */
+
+.mask-mode-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.mask-mode-tabs button {
+  flex: 1;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.mask-mode-tabs button.is-active {
+  background: rgba(108, 167, 255, 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.mask-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mask-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.mtool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.mtool:hover {
+  color: var(--text);
+  background: #232a3f;
+}
+
+.mtool.is-active {
+  background: rgba(108, 167, 255, 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.mask-size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.mask-size input[type="range"] {
+  width: 90px;
+  accent-color: var(--accent);
+}
+
+.mask-canvas-wrap {
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #000;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.mask-canvas-wrap canvas {
+  display: block;
+  width: 100%;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.mask-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.mask-preview img {
+  max-width: 260px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: block;
+}
+
+.text-mask-box {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
 }
