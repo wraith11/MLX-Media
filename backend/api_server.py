@@ -329,6 +329,7 @@ class APIServer(BaseHTTPRequestHandler):
         legacy_media_handlers = {
             "/sdapi/v1/txt2img": self.handle_txt2img,
             "/sdapi/v1/img2img": self.handle_img2img,
+            "/sdapi/v1/inpaint": self.handle_inpaint,
             "/sdapi/v1/controlnet": self.handle_controlnet,
             "/api/upscale": self.handle_upscale,
         }
