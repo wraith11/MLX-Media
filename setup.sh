@@ -70,6 +70,21 @@ build_frontend() {
   log "Frontend gebaut (frontend/dist)."
 }
 
+predownload_models() {
+  # Optionally pre-download the inpainting (Fill) model so the first inpaint
+  # job does not stall on a large Hugging Face download.
+  if [ -x "$VENV_DIR/bin/python" ]; then
+    log "Lade FLUX.1-Fill-dev für Inpainting vor (einmalig, groß) …"
+    "$VENV_DIR/bin/python" - <<'PY'
+from mflux.flux.flux import Flux1
+Flux1.from_huggingface(model_name="flux.1-fill-dev", quantize=None)
+print("FLUX.1-Fill-dev bereit.")
+PY
+  else
+    log "venv fehlt — Modell-Vorabladen übersprungen (erst ./setup.sh)."
+  fi
+}
+
 start_prod() {
   if [ ! -f "$ROOT_DIR/frontend/dist/index.html" ]; then
     log "Frontend noch nicht gebaut — baue zuerst."
