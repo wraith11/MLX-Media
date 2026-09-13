@@ -759,7 +759,7 @@ export default function App() {
       case "create":
         return <CreatePage user={activeUser} onGenerated={onGenerated} notify={notify} />;
       case "edit":
-        return <EditPage user={activeUser} library={library} notify={notify} />;
+        return <EditPage user={activeUser} library={library} onGenerated={onGenerated} notify={notify} />;
       case "library":
         return <LibraryPage user={activeUser} library={library} onDelete={onDelete} notify={notify} />;
       case "settings":
