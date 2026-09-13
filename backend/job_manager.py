@@ -316,6 +316,54 @@ class JobManager:
     def _run_controlnet(self, job: Job, params: dict, progress_callback):
         from backend.flux_manager import generate_image_controlnet_gradio
         from backend.api_server import _resolve_model_from_payload, _decode_base64_image
+    def _run_inpaint(self, job: Job, params: dict, progress_callback):
+        """
+        Real mask-based inpainting through FLUX.1-Fill-dev.
+        Requires an init image plus a mask (white = region to regenerate).
+        """
+        from backend.fill_manager import generate_fill_gradio
+        from backend.api_server import _decode_base64_image
+
+        prompt = params.get("prompt", "")
+        init_images = params.get("init_images") or params.get("images") or []
+        if not init_images:
+            raise ValueError("init_images is required for inpaint")
+        image = _decode_base64_image(init_images[0])
+
+        mask_b64 = params.get("mask") or params.get("mask_image") or params.get("masks")
+        if not mask_b64:
+            raise ValueError("mask is required for inpaint (white = regenerate region)")
+        mask_img = _decode_base64_image(mask_b64).convert("L")
+
+        width = int(params.get("width", image.width))
+        height = int(params.get("height", image.height))
+        steps = params.get("steps", 25)
+        guidance = float(params.get("guidance", 30.0))
+        num_images = int(params.get("num_images", 1))
+        seed = params.get("seed")
+        low_ram = bool(params.get("low_ram", False))
+
+        progress_callback("stage", "loading_model")
+
+        images, info, used_prompt = generate_fill_gradio(
+            prompt,
+            image,
+            mask_img,
+            None,
+            seed,
+            height,
+            width,
+            steps,
+            guidance,
+            False,
+            num_images=num_images,
+            low_ram=low_ram,
+        )
+
+        if job.status == JobStatus.cancelled:
+            return
+
+        self._finalize_job(job, images, info, used_prompt)
 
         model = _resolve_model_from_payload(params)
         prompt = params.get("prompt", "")
