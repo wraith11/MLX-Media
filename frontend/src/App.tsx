@@ -14,7 +14,6 @@
  */
 import { useEffect, useRef, useState } from "react";
 import {
-  Activity,
   Download,
   ImagePlus,
   Images,
