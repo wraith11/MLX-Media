@@ -703,7 +703,7 @@ class APIServer(BaseHTTPRequestHandler):
             }, status=400)
 
         prompt = data.get("prompt", "")
-        if job_type in (JobType.txt2img, JobType.img2img, JobType.controlnet) and not prompt:
+        if job_type in (JobType.txt2img, JobType.img2img, JobType.controlnet, JobType.inpaint) and not prompt:
             return _json_response(self, {
                 "error": APIError(
                     code=APIError.MISSING_PARAM,
