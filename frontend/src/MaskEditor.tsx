@@ -317,7 +317,7 @@ export default function MaskEditor({ image, onChange }: MaskEditorProps) {
           <span>Leeren</span>
         </button>
         <button type="button" className="mtool" onClick={fillAll} title="Ganzes Bild maskieren">
-          <RotateCcw size={16} />
+          <Maximize size={16} />
           <span>Ganzes Bild</span>
         </button>
       </div>
