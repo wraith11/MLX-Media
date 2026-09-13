@@ -233,6 +233,8 @@ class JobManager:
             self._run_txt2img(job, params, progress_callback)
         elif job_type == JobType.img2img:
             self._run_img2img(job, params, progress_callback)
+        elif job_type == JobType.inpaint:
+            self._run_inpaint(job, params, progress_callback)
         elif job_type == JobType.controlnet:
             self._run_controlnet(job, params, progress_callback)
         elif job_type == JobType.upscale:
