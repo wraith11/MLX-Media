@@ -319,10 +319,11 @@ class JobManager:
 
         model = _resolve_model_from_payload(params)
         prompt = params.get("prompt", "")
-        if job.status == JobStatus.cancelled:
-            return
-
-        self._finalize_job(job, images, info, used_prompt)
+        cn_images = (
+            params.get("controlnet_image")
+            or params.get("controlnet_images")
+            or params.get("init_images")
+            or []
         )
         if not cn_images:
             raise ValueError("controlnet_image is required")
