@@ -80,25 +80,37 @@ export default function MaskEditor({ image, onChange }: MaskEditorProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [image]);
 
-  /** Composite the source image and the semi-transparent red mask overlay. */
+  /** Composite the source image and a red overlay over masked (white) pixels. */
   const drawMaskOverlay = useCallback(() => {
     const canvas = canvasRef.current;
     const mask = maskBitmapRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx || !mask) return;
 
-    // Redraw source.
     const img = new Image();
     img.onload = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      // Overlay mask in red with transparency.
-      ctx.globalCompositeOperation = "source-over";
-      ctx.drawImage(mask, 0, 0);
-      ctx.fillStyle = "rgba(255, 60, 60, 0.45)";
-      ctx.globalCompositeOperation = "source-in";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.globalCompositeOperation = "source-over";
+
+      // Build a red overlay whose alpha comes from the mask's luminance.
+      const overlay = document.createElement("canvas");
+      overlay.width = canvas.width;
+      overlay.height = canvas.height;
+      const octx = overlay.getContext("2d");
+      if (octx) {
+        octx.drawImage(mask, 0, 0);
+        const id = octx.getImageData(0, 0, overlay.width, overlay.height);
+        const d = id.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const lum = d[i]; // grayscale luminance
+          d[i] = 255;
+          d[i + 1] = 60;
+          d[i + 2] = 60;
+          d[i + 3] = Math.round(lum * 0.55);
+        }
+        octx.putImageData(id, 0, 0);
+      }
+      ctx.drawImage(overlay, 0, 0);
     };
     img.src = image;
   }, [image]);
