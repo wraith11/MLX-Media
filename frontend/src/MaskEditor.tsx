@@ -310,7 +310,7 @@ export default function MaskEditor({ image, onChange }: MaskEditorProps) {
           />
         </label>
         <button type="button" className="mtool" onClick={invertMask} title="Maske invertieren">
-          <Invert size={16} />
+          <Repeat size={16} />
           <span>Invertieren</span>
         </button>
         <button type="button" className="mtool" onClick={clearMask} title="Maske löschen">
