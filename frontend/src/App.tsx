@@ -272,12 +272,10 @@ function CreatePage({
 }
 
 function EditPage({
-  user,
   library,
   onGenerated,
   notify,
 }: {
-  user: string;
   library: StoredImage[];
   onGenerated: (img: StoredImage) => void;
   notify: (msg: string) => void;
