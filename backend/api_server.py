@@ -888,16 +888,19 @@ class APIServer(BaseHTTPRequestHandler):
             # Fallback: centered ellipse covering ~70% of the image.
             cx, cy = w / 2.0, h / 2.0
             rx, ry = w * 0.35, h * 0.35
-            box = (cx - rx, cy - ry, cx + rx, cy + ry)
+            box_px = (cx - rx, cy - ry, cx + rx, cy + ry)
+        else:
+            # _parse_bbox returns normalized 0..1 coords -> scale to pixels.
+            box_px = (box[0] * w, box[1] * h, box[2] * w, box[3] * h)
 
         # Build mask: white ellipse inside the box on a black canvas.
         mask = Image.new("L", (w, h), 0)
         draw = ImageDraw.Draw(mask)
-        draw.ellipse([box[0], box[1], box[2], box[3]], fill=255)
+        draw.ellipse([box_px[0], box_px[1], box_px[2], box_px[3]], fill=255)
 
         return _json_response(self, {
             "mask": _encode_pil_to_base64(mask),
-            "box": [float(b) for b in box],
+            "box": [float(b) for b in box_px],
             "width": w,
             "height": h,
             "model_used": used_model,
