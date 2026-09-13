@@ -819,6 +819,109 @@ class APIServer(BaseHTTPRequestHandler):
             })
         return response(self, payload, status=202)
 
+    def handle_mask_from_text(self):
+        """
+        POST /api/v1/mask-from-text
+        Body: { "image": "<base64>", "text": "<Objektbeschreibung>", "model": "<vlm>" }
+        Uses an MLX vision-language model to locate the described object and
+        returns a mask image (white bbox region on black) plus the detected box.
+        Falls back to a centered ellipse guess if no VLM is available.
+        """
+        from backend.api_server import _decode_base64_image, _encode_pil_to_base64
+
+        try:
+            data = self._read_json()
+        except Exception as exc:
+            return _bad_request(self, str(exc))
+
+        image_b64 = data.get("image")
+        text = (data.get("text") or data.get("prompt") or "").strip()
+        if not image_b64:
+            return _bad_request(self, "image is required (base64)")
+        if not text:
+            return _bad_request(self, "text is required (object to locate)")
+
+        import numpy as np
+        from PIL import Image, ImageDraw
+
+        try:
+            img = _decode_base64_image(image_b64)
+        except Exception as exc:
+            return _bad_request(self, f"Invalid image: {exc}")
+
+        w, h = img.size
+        box = None
+        used_model = None
+
+        try:
+            from backend import mlx_vlm_manager as vlm
+
+            model_name = data.get("model")
+            if not model_name:
+                available = vlm.get_available_mlx_vlm_models()
+                model_name = available[0] if available else None
+            if model_name:
+                used_model = model_name
+                model, processor, config = vlm.load_mlx_model(model_name)
+                if model is not None and processor is not None:
+                    prompt = (
+                        f"Locate the object: \"{text}\". "
+                        "Answer with ONLY four numbers separated by commas: "
+                        "x1,y1,x2,y2 as normalized coordinates 0..1 bounding box "
+                        "around that object in the image."
+                    )
+                    out = vlm.generate_with_model(
+                        model=model,
+                        processor=processor,
+                        config=config,
+                        prompt=prompt,
+                        images=[image_b64],
+                        max_tokens=64,
+                        temperature=0.0,
+                    )
+                    box = self._parse_bbox(out)
+        except Exception as exc:  # noqa: BLE001
+            print(f"Mask-from-text VLM failed, using fallback: {exc}")
+            box = None
+
+        if not box:
+            # Fallback: centered ellipse covering ~70% of the image.
+            cx, cy = w / 2.0, h / 2.0
+            rx, ry = w * 0.35, h * 0.35
+            box = (cx - rx, cy - ry, cx + rx, cy + ry)
+
+        # Build mask: white ellipse inside the box on a black canvas.
+        mask = Image.new("L", (w, h), 0)
+        draw = ImageDraw.Draw(mask)
+        draw.ellipse([box[0], box[1], box[2], box[3]], fill=255)
+
+        return _json_response(self, {
+            "mask": _encode_pil_to_base64(mask),
+            "box": [float(b) for b in box],
+            "width": w,
+            "height": h,
+            "model_used": used_model,
+        })
+
+    @staticmethod
+    def _parse_bbox(text: str):
+        """Best-effort parse of 'x1,y1,x2,y2' (normalized 0..1) from VLM output."""
+        if not text:
+            return None
+        import re
+
+        # Collect all numbers, prefer four in a row (possibly with decimals).
+        nums = re.findall(r"-?\d*\.?\d+", text)
+        if len(nums) < 4:
+            return None
+        try:
+            vals = [float(n) for n in nums[:4]]
+        except ValueError:
+            return None
+        x1, y1, x2, y2 = vals
+        if not (0.0 <= x1 <= 1.0 and 0.0 <= y1 <= 1.0) or not (0.0 <= x2 <= 1.0 and 0.0 <= y2 <= 1.0):
+            return None
+        return (min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2))
     def handle_get_job(self, job_id: str):
         """GET /api/v1/jobs/{id} - get job status."""
         from backend.api_models import APIError
