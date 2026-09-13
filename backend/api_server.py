@@ -513,6 +513,64 @@ class APIServer(BaseHTTPRequestHandler):
         }
         return _json_response(self, response)
 
+    def handle_inpaint(self):
+        from backend.fill_manager import generate_fill_gradio
+
+        try:
+            data = self._read_json()
+        except Exception as exc:
+            return _bad_request(self, str(exc))
+
+        prompt = data.get("prompt")
+        init_images = data.get("init_images") or data.get("images") or []
+        mask_b64 = data.get("mask") or data.get("mask_image") or data.get("masks")
+        if not prompt or not init_images:
+            return _bad_request(self, "prompt and init_images are required")
+        if not mask_b64:
+            return _bad_request(self, "mask is required (white = regenerate region)")
+        try:
+            init_img = _decode_base64_image(init_images[0])
+            mask_img = _decode_base64_image(mask_b64).convert("L")
+        except Exception as exc:
+            return _bad_request(self, f"Invalid image or mask: {exc}")
+
+        width = int(data.get("width", init_img.width))
+        height = int(data.get("height", init_img.height))
+        steps = data.get("steps") or data.get("num_inference_steps") or 25
+        guidance = float(data.get("guidance") or data.get("guidance_scale") or 30.0)
+        num_images = int(data.get("num_images", 1))
+        low_ram = bool(data.get("low_ram", False))
+        seed = data.get("seed")
+
+        try:
+            images, info, used_prompt = generate_fill_gradio(
+                prompt,
+                init_img,
+                mask_img,
+                None,
+                seed,
+                height,
+                width,
+                steps,
+                guidance,
+                False,
+                num_images=num_images,
+                low_ram=low_ram,
+            )
+        except Exception as exc:  # noqa: BLE001
+            return _bad_request(self, f"Inpaint failed: {exc}", status=500)
+
+        if not images:
+            return _bad_request(self, info or "No images were generated successfully", status=500)
+
+        encoded_images = [_encode_pil_to_base64(img) for img in images]
+        response = {
+            "images": encoded_images,
+            "parameters": data,
+            "info": info or "",
+            "prompt": used_prompt,
+        }
+        return _json_response(self, response)
     def handle_controlnet(self):
         from backend.flux_manager import generate_image_controlnet_gradio
 
