@@ -31,7 +31,6 @@ import {
 } from "lucide-react";
 import {
   base64ToDataUrl,
-  cancelJob,
   dataUrlToBase64,
   fetchJob,
   fetchModels,
@@ -40,8 +39,6 @@ import {
   maskFromText,
   submitGenerate,
   type Job,
-  type JobStatusValue,
-  type JobTypeValue,
   type ModelInfo,
   type SystemInfo,
 } from "./mediaApi";
