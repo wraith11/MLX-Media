@@ -841,7 +841,6 @@ class APIServer(BaseHTTPRequestHandler):
         if not text:
             return _bad_request(self, "text is required (object to locate)")
 
-        import numpy as np
         from PIL import Image, ImageDraw
 
         try:
