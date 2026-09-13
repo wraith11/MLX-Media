@@ -22,6 +22,7 @@ class JobStatus(str, Enum):
 class JobType(str, Enum):
     txt2img = "txt2img"
     img2img = "img2img"
+    inpaint = "inpaint"
     controlnet = "controlnet"
     upscale = "upscale"
     photo_batch = "photo_batch"
