@@ -220,6 +220,57 @@ Image-to-image generation (Flux2 Edit mode).
 
 ---
 
+#### POST /sdapi/v1/inpaint
+
+Real mask-based inpainting (FLUX.1-Fill-dev). The masked (white) region is
+regenerated from the prompt; everything outside stays unchanged.
+
+**Request Body:**
+```json
+{
+  "prompt": "a red woolen beanie",
+  "init_images": ["base64_encoded_image"],
+  "mask": "base64_encoded_grayscale_mask",
+  "steps": 25,
+  "guidance": 30
+}
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `init_images` | array | *(required)* | Base64 input image |
+| `mask` | string | *(required)* | Base64 grayscale mask (white = regenerate) |
+| `steps` | int | 25 | Inference steps |
+| `guidance` | float | 30.0 | Fill guidance (works best high) |
+
+#### POST /api/v1/mask-from-text
+
+Locate an object via an MLX vision-language model and return a mask.
+
+**Request Body:**
+```json
+{
+  "image": "base64_encoded_image",
+  "text": "den Hut"
+}
+```
+
+**Response:**
+```json
+{
+  "mask": "base64_grayscale_mask",
+  "box": [100, 50, 420, 380],
+  "width": 512,
+  "height": 512,
+  "model_used": "mlx-community/...-vlm"
+}
+```
+
+If no VLM is installed, the server falls back to a centered ellipse mask and
+`model_used` is `null`.
+
+---
+
 ### 2. Async Job API
 
 For long-running generations, use async endpoints with job tracking.
