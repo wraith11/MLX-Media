@@ -38,6 +38,7 @@ import {
   fetchModels,
   fetchSystem,
   isTerminal,
+  maskFromText,
   submitGenerate,
   type Job,
   type JobStatusValue,
@@ -45,6 +46,7 @@ import {
   type ModelInfo,
   type SystemInfo,
 } from "./mediaApi";
+import MaskEditor from "./MaskEditor";
 
 /* ── Per-user persistence ────────────────────────────────────────── */
 
