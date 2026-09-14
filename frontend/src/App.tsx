@@ -841,20 +841,85 @@ function SettingsPage({
   notify: (msg: string) => void;
 }) {
   const [models, setModels] = useState<ModelInfo[]>([]);
+  const [active, setActive] = useState<string>("");
   const [system, setSystem] = useState<SystemInfo | null>(null);
+  const [vlm, setVlm] = useState<VlmStatus | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refresh = async () => {
     setLoading(true);
     try {
-      const [modelRes, sysRes] = await Promise.all([fetchModels(), fetchSystem()]);
+      const [modelRes, sysRes, vlmRes] = await Promise.all([
+        fetchModels(),
+        fetchSystem(),
+        fetchVlmStatus(),
+      ]);
       setModels(modelRes.models ?? []);
+      setActive(modelRes.active ?? sysRes.active_model ?? "");
       setSystem(sysRes);
+      setVlm(vlmRes);
     } catch (err) {
       notify(err instanceof Error ? err.message : "Backend nicht erreichbar.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const select = async (m: string) => {
+    try {
+      const r = await selectModel(m);
+      setActive(r.active);
+      notify(`Aktives Modell: ${r.active}`);
+    } catch (err) {
+      notify(err instanceof Error ? err.message : "Modell-Auswahl fehlgeschlagen.");
+    }
+  };
+
+  const download = async (m: string) => {
+    setBusy(`dl:${m}`);
+    try {
+      await downloadModel(m);
+      notify(`Modell geladen: ${m}`);
+      await refresh();
+    } catch (err) {
+      notify(err instanceof Error ? err.message : `Download fehlgeschlagen: ${m}`);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const remove = async (m: string) => {
+    setBusy(`del:${m}`);
+    try {
+      const r = await deleteModel(m);
+      notify(r.removed ? `Modell gelöscht: ${m}` : `Kein lokales Modell: ${m}`);
+      await refresh();
+    } catch (err) {
+      notify(err instanceof Error ? err.message : `Löschen fehlgeschlagen: ${m}`);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const installVlm = async (m: string) => {
+    setBusy(`vlm:${m}`);
+    try {
+      const res = await downloadVlm(m);
+      notify(`VLM installiert: ${res.model}`);
+      await refresh();
+    } catch (err) {
+      notify(err instanceof Error ? err.message : "VLM-Download fehlgeschlagen.");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const fmtSize = (bytes: number) => {
+    if (!bytes) return "—";
+    if (bytes >= 1e9) return `${(bytes / 1e9).toFixed(1)} GB`;
+    if (bytes >= 1e6) return `${(bytes / 1e6).toFixed(0)} MB`;
+    return `${(bytes / 1e3).toFixed(0)} KB`;
   };
 
   useEffect(() => {
@@ -867,7 +932,7 @@ function SettingsPage({
         <div>
           <span className="eyebrow">Einstellungen</span>
           <h1>Backend &amp; Modelle</h1>
-          <p>Status des lokalen MLX-Backends.</p>
+          <p>Systemstatus, Modellverwaltung und MLX-VLM.</p>
         </div>
         <button className="btn" onClick={refresh} disabled={loading}>
           {loading ? <Spinner /> : null} Aktualisieren
@@ -878,7 +943,7 @@ function SettingsPage({
         <div className="section-title">System</div>
         <div className="info-row">
           <span>Aktives Modell</span>
-          <strong>{system?.active_model ?? "—"}</strong>
+          <strong>{active || "—"}</strong>
         </div>
         <div className="info-row">
           <span>Warteschlange</span>
@@ -895,19 +960,89 @@ function SettingsPage({
       </section>
 
       <section className="panel">
-        <div className="section-title">Verfügbare Modelle</div>
+        <div className="section-title">Modell wählen &amp; verwalten</div>
+        <p className="muted">
+          Das aktive Modell wird für „Bilder erzeugen“ verwendet. Nicht heruntergeladene
+          Modelle werden bei der ersten Nutzung automatisch geladen — du kannst sie hier
+          auch vorab herunterladen oder von der Platte löschen.
+        </p>
         {models.length === 0 ? (
           <p className="muted">Keine Modelle gefunden.</p>
         ) : (
-          <div className="model-list">
-            {models.map((m) => (
-              <div className="info-row" key={m.name}>
-                <span>{m.name}</span>
-                <em>{m.capabilities?.join(", ") || "txt2img"}</em>
-              </div>
-            ))}
+          <div className="model-manage-list">
+            {models.map((m) => {
+              const isActive = m.name === active;
+              const dlBusy = busy === `dl:${m.name}`;
+              const delBusy = busy === `del:${m.name}`;
+              return (
+                <div className={isActive ? "model-manage-row is-active" : "model-manage-row"} key={m.name}>
+                  <div className="model-manage-info">
+                    <strong>{m.name}</strong>
+                    <span className="muted">
+                      {m.capabilities?.join(", ") || "txt2img"}
+                      {m.downloaded ? ` · lokal · ${fmtSize(m.size_bytes ?? 0)}` : " · nicht lokal"}
+                    </span>
+                  </div>
+                  <div className="model-manage-actions">
+                    <button
+                      className="btn"
+                      onClick={() => select(m.name)}
+                      disabled={isActive}
+                    >
+                      {isActive ? "Aktiv" : "Wählen"}
+                    </button>
+                    {!m.downloaded && (
+                      <button className="btn" onClick={() => download(m.name)} disabled={dlBusy || busy !== null}>
+                        {dlBusy ? <Spinner /> : <Download size={15} />} Herunterladen
+                      </button>
+                    )}
+                    {m.downloaded && (
+                      <button className="btn btn-danger" onClick={() => remove(m.name)} disabled={delBusy || busy !== null}>
+                        {delBusy ? <Spinner /> : <Trash2 size={15} />} Löschen
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
+      </section>
+
+      <section className="panel">
+        <div className="section-title">MLX-VLM für Text-Maske</div>
+        <p className="muted">
+          Zum Erzeugen einer Maske aus Text („den Hut“) lokalisiert das Backend das Objekt mit
+          einem Vision-Language-Modell. Standard: <code>{vlm?.default ?? "…"}</code> — wird beim
+          ersten Gebrauch automatisch geladen, falls nichts installiert ist.
+        </p>
+        {vlm && vlm.installed.length > 0 ? (
+          <div className="vlm-installed">
+            <span className="muted">Installiert:</span>
+            {vlm.installed.map((name) => (
+              <span key={name} className="vlm-chip">{name}</span>
+            ))}
+          </div>
+        ) : (
+          <p className="muted">Kein VLM installiert.</p>
+        )}
+        <div className="row-actions">
+          {(vlm?.recommended ?? []).map((m) => {
+            const installed = vlm?.installed.includes(m);
+            const vlmBusy = busy === `vlm:${m}`);
+            return (
+              <button
+                key={m}
+                className="btn"
+                onClick={() => installVlm(m)}
+                disabled={busy !== null || installed}
+              >
+                {vlmBusy ? <Spinner /> : installed ? <Sparkles size={15} /> : <Download size={15} />}
+                {installed ? `✓ ${m.split("/").pop()}` : `Installieren: ${m.split("/").pop()}`}
+              </button>
+            );
+          })}
+        </div>
       </section>
     </div>
   );
