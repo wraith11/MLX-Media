@@ -47,10 +47,14 @@ chmod +x setup.sh
 
 - Backend + WebUI laufen standardmäßig auf **http://0.0.0.0:7861** (im Netzwerk
   erreichbar). Host überschreiben: `MFLUX_HOST=127.0.0.1 ./setup.sh`.
+- Wird das Backend auf einem Netzwerk-Host gestartet (nicht 127.0.0.1), setzt
+  `setup.sh` automatisch `MFLUX_ALLOW_LAN=1`, damit auch Video- und
+  Foto-Bereiche von anderen Geräten im LAN erreichbar sind.
 - Nach Änderungen am Frontend: `./setup.sh --rebuild`.
 - Inpainting-Modell vorab laden (optional, groß): `./setup.sh --models`.
-- Video-Runner einrichten (optional, sehr groß — ≥ 64 GiB RAM, 40 GiB frei,
-  `uv` erforderlich): `./setup.sh --video`.
+- Video-Runner einrichten — entweder per Button im **Video-Tab** (Einrichtung
+  läuft im Hintergrund mit Live-Log) oder per CLI (sehr groß — ≥ 64 GiB RAM,
+  40 GiB frei, `uv` erforderlich): `./setup.sh --video`.
   Details und Grenzen: [docs/MLX_VIDEO_INTEGRATION.md](docs/MLX_VIDEO_INTEGRATION.md).
 - Für Entwicklung (Vite mit Live-Reload + Proxy auf das Backend):
   `./setup.sh --dev` → UI auf http://localhost:5173.
