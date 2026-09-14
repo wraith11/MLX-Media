@@ -85,6 +85,23 @@ PY
   fi
 }
 
+setup_video() {
+  # Provision the isolated mlx-video runner + Wan 2.1 model (large download).
+  # Requires uv (https://astral.sh/uv) and >= 64 GiB unified memory / 40 GiB free.
+  require_command git
+  require_command uv
+  if [ ! -x "$VENV_DIR/bin/python" ]; then
+    log "venv fehlt — baue zuerst die Basis-Umgebung."
+    setup_python
+    install_deps
+  fi
+  log "Prüfe Video-Voraussetzungen (Architektur, Speicher, Festplatte) …"
+  "$VENV_DIR/bin/python" "$ROOT_DIR/scripts/setup_mlx_video_runner.py" plan || true
+  log "Provisionschritt läuft. Das lädt Engine + Wan-Modell und konvertiert es (dauert lange, mehrere GiB)."
+  "$VENV_DIR/bin/python" "$ROOT_DIR/scripts/setup_mlx_video_runner.py" provision
+  log "Video-Runner fertig. Status im Video-Tab prüfen."
+}
+
 start_prod() {
   if [ ! -f "$ROOT_DIR/frontend/dist/index.html" ]; then
     log "Frontend noch nicht gebaut — baue zuerst."
