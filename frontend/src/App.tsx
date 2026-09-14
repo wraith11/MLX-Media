@@ -595,18 +595,41 @@ function SettingsPage({
 }) {
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [system, setSystem] = useState<SystemInfo | null>(null);
+  const [vlm, setVlm] = useState<VlmStatus | null>(null);
+  const [downloading, setDownloading] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const refresh = async () => {
     setLoading(true);
     try {
-      const [modelRes, sysRes] = await Promise.all([fetchModels(), fetchSystem()]);
+      const [modelRes, sysRes, vlmRes] = await Promise.all([
+        fetchModels(),
+        fetchSystem(),
+        fetchVlmStatus(),
+      ]);
       setModels(modelRes.models ?? []);
       setSystem(sysRes);
+      setVlm(vlmRes);
     } catch (err) {
       notify(err instanceof Error ? err.message : "Backend nicht erreichbar.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const installVlm = async (model: string) => {
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      const res = await downloadVlm(model);
+      notify(`VLM installiert: ${res.model}`);
+      setVlm((prev) =>
+        prev ? { ...prev, installed: [...prev.installed, res.model], has_vlm: true } : prev
+      );
+    } catch (err) {
+      notify(err instanceof Error ? err.message : "VLM-Download fehlgeschlagen.");
+    } finally {
+      setDownloading(false);
     }
   };
 
