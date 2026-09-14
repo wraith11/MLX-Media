@@ -32,6 +32,13 @@ export interface JobResult {
   info?: string;
   prompt?: string;
   status?: string;
+  // Video jobs return artifact URLs instead of base64 images.
+  artifact_urls?: {
+    video?: string;
+    provenance?: string;
+    request?: string;
+  };
+  output?: { container: string; sha256: string; size_bytes: number };
 }
 
 export interface Job {
