@@ -790,4 +790,128 @@ body {
   .grid-2 {
     grid-template-columns: 1fr;
   }
+/* ── Gallery: click-to-enlarge + actions ────────────────────────── */
+
+.gallery-img-btn {
+  display: block;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: zoom-in;
+  width: 100%;
+}
+
+.gallery-img-btn img {
+  width: 100%;
+  display: block;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: #000;
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 100;
+  padding: 24px;
+}
+
+.lightbox img {
+  max-width: 92vw;
+  max-height: 78vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.lightbox-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 92vw;
+}
+
+/* ── Settings: model management ─────────────────────────────────── */
+
+.model-manage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.model-manage-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+
+.model-manage-row.is-active {
+  border-color: var(--accent);
+  background: rgba(108, 167, 255, 0.08);
+}
+
+.model-manage-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.model-manage-info strong {
+  font-size: 14px;
+}
+
+.model-manage-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.model-manage-actions .btn {
+  padding: 7px 10px;
+  font-size: 13px;
+}
+
+/* ── Settings: VLM installed chips ──────────────────────────────── */
+
+.vlm-installed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.vlm-chip {
+  background: rgba(108, 167, 255, 0.15);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 99px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+@media (max-width: 640px) {
+  .model-manage-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .model-manage-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}
 }
