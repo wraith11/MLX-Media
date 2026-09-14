@@ -755,8 +755,6 @@ function SettingsPage({
         )}
       </section>
 
-      </section>
-
       <section className="panel">
         <div className="section-title">Verfügbare Modelle</div>
         {models.length === 0 ? (
