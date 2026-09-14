@@ -304,3 +304,59 @@ def generate_caption_with_mlx_vlm(image_path: str, model_name: str) -> str:
         return ""
     finally:
         gc.collect()
+
+# Default VLM used for text->mask object detection when the user has not
+# installed one. Qwen2.5-VL is well supported by mlx-vlm 0.3.9 and is a modern
+# generation ahead of the older Qwen2-VL.
+DEFAULT_VLM = "mlx-community/Qwen2.5-VL-7B-Instruct-4bit"
+
+# A short list of alternative, current MLX VLM repos offered in the Models tab.
+RECOMMENDED_VLMS = [
+    "mlx-community/Qwen2.5-VL-7B-Instruct-4bit",
+    "mlx-community/Qwen2.5-VL-3B-Instruct-4bit",
+    "mlx-community/Qwen3-VL-4B-Instruct-4bit",
+]
+
+
+def vlm_is_installed(model_name: str) -> bool:
+    """Check whether an MLX model already exists in the local HF cache."""
+    try:
+        cached = scan_huggingface_cache()
+        names = {m.name for m in cached}
+        return model_name in names
+    except Exception:
+        return False
+
+
+def vlm_status() -> dict:
+    """Return whether a usable VLM is installed plus a recommended default."""
+    installed = get_available_mlx_vlm_models()
+    return {
+        "default": DEFAULT_VLM,
+        "recommended": RECOMMENDED_VLMS,
+        "installed": installed,
+        "has_vlm": bool(installed),
+    }
+
+
+def download_vlm(model_name: str = DEFAULT_VLM) -> dict:
+    """
+    Download an MLX VLM repo into the local HF cache using snapshot_download.
+    Raises on failure so the caller can return an error response.
+    """
+    from huggingface_hub import snapshot_download
+
+    target = model_name or DEFAULT_VLM
+    local = snapshot_download(
+        repo_id=target,
+        allow_patterns=[
+            "*.json", "*.safetensors", "*.tokenizer", "*.txt",
+            "*.model", "*.tiktoken", "*.py", "*.merges", "*.vocab",
+        ],
+        ignore_patterns=["*.ckpt"],
+    )
+    return {
+        "model": target,
+        "local_path": local,
+        "installed": vlm_is_installed(target),
+    }
