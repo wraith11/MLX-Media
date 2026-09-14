@@ -65,7 +65,6 @@ _VIDEO_SETUP_STATE = {
     "started_at": None,
 }
 _VIDEO_SETUP_LOCK = threading.Lock()
-_RE_BYTE_RANGE = re.compile(r"^bytes=(\d*)-(\d*)$")
 
 
 def _current_model():
