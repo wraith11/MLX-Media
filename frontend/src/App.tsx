@@ -368,11 +368,35 @@ function EditPage({
   };
 
   const startEdit = async () => {
-    if (!image || !prompt.trim() || running) return;
+    if (!image || running) return;
     if (maskMode === "manual" && !mask) {
       notify("Bitte zuerst die Maske mit Pinsel oder Lasso zeichnen.");
       return;
     }
+    // Text mode: the single field describes the change; also auto-build the mask.
+    let effectiveMask = mask;
+    if (maskMode === "text") {
+      if (!textTarget.trim()) {
+        notify("Bitte beschreibe, was bearbeitet werden soll.");
+        return;
+      }
+      if (!effectiveMask) {
+        setMaskBusy(true);
+        try {
+          const res = await maskFromText(image, textTarget.trim());
+          effectiveMask = base64ToDataUrl(res.mask);
+          setMask(effectiveMask);
+        } catch (err) {
+          notify(err instanceof Error ? err.message : "Text-Maske fehlgeschlagen.");
+          return;
+        } finally {
+          setMaskBusy(false);
+        }
+      }
+    }
+    // Use the original prompt when the user leaves the field empty.
+    const usePrompt = prompt.trim() || initialPrompt.trim() || "recreate the masked area naturally";
+
     setRunning(true);
     setResult(null);
     setProgress(0);
@@ -381,9 +405,9 @@ function EditPage({
     try {
       const submitted = await submitGenerate({
         type: "inpaint",
-        prompt: prompt.trim(),
+        prompt: usePrompt,
         init_images: [dataUrlToBase64(image)],
-        mask: mask ? dataUrlToBase64(mask) : undefined,
+        mask: effectiveMask ? dataUrlToBase64(effectiveMask) : undefined,
         guidance: 30,
       });
       const jobId = submitted.job_id;
@@ -406,7 +430,7 @@ function EditPage({
             onGenerated({
               id: `img-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
               dataUrl: out,
-              prompt: prompt.trim(),
+              prompt: usePrompt,
               createdAt: Date.now(),
             });
             notify("Bearbeitung fertig.");
