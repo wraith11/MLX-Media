@@ -21,6 +21,8 @@ minimal frontend** that actually talks to the local MLX backend:
     `Qwen2.5-VL-7B-Instruct-4bit` und wird beim ersten Gebrauch automatisch
     von Hugging Face geladen).
 - **Galerie** — deine erzeugten Bilder, pro Benutzer getrennt.
+- **Modelle** — lokale MLX-Generationsmodelle ansehen, MLX-VLM für Text-Masken
+  herunterladen und bereitstellen.
 - **Benutzer** — mehrere Benutzer mit eigenem, getrenntem Bildbereich (im Browser
   gespeichert).
 - **Einstellungen** — Backend-Status + Modellübersicht.
