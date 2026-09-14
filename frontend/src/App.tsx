@@ -345,22 +345,6 @@ function EditPage({
       setMask(null);
     };
     reader.readAsDataURL(file);
-    e.target.value = "";
-  };
-
-  /** Erzeuge eine Maske per Textbeschreibung über das Backend (VLM). */
-  const generateMaskFromText = async () => {
-    if (!image || !textTarget.trim() || maskBusy) return;
-    setMaskBusy(true);
-    try {
-      const res = await maskFromText(image, textTarget.trim());
-      setMask(base64ToDataUrl(res.mask));
-      notify(
-        res.model_used
-          ? "Maske aus Text erzeugt."
-          : "Kein VLM-Modell gefunden — Zentrum als Maske gesetzt. Maske manuell anpassen.",
-      );
-    } catch (err) {
       notify(err instanceof Error ? err.message : "Text-Maske fehlgeschlagen.");
     } finally {
       setMaskBusy(false);
