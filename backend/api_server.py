@@ -1283,8 +1283,12 @@ class APIServer(BaseHTTPRequestHandler):
         self.end_headers()
 
     def handle_v1_models(self):
-        """GET /api/v1/models - models with capabilities."""
-        from backend.model_manager import get_custom_model_config, get_updated_models
+        """GET /api/v1/models - models with capabilities and download state."""
+        from backend.model_manager import (
+            get_custom_model_config,
+            get_model_download_status,
+            get_updated_models,
+        )
 
         models = []
         try:
@@ -1303,8 +1307,82 @@ class APIServer(BaseHTTPRequestHandler):
                     entry["capabilities"].append("controlnet")
             except Exception:
                 pass
+            try:
+                dl = get_model_download_status(alias)
+                entry["downloaded"] = dl["downloaded"]
+                entry["size_bytes"] = dl["size_bytes"]
+            except Exception:
+                entry["downloaded"] = False
+                entry["size_bytes"] = 0
             models.append(entry)
-        return _json_response(self, {"models": models})
+        return _json_response(self, {"models": models, "active": _current_model()})
+
+    def handle_model_select(self):
+        """POST /api/v1/model/select - set the active generation model."""
+        from backend.api_models import APIError
+
+        try:
+            data = self._read_json()
+        except Exception as exc:
+            return _bad_request(self, str(exc))
+        model = (data.get("model") or "").strip()
+        if not model:
+            return _bad_request(self, "model is required")
+        _set_current_model(model)
+        return _json_response(self, {"status": "ok", "active": _current_model()})
+
+    def handle_model_download(self):
+        """POST /api/v1/model/download - download a model into models/<alias>."""
+        from backend.model_manager import get_updated_models
+        from backend.api_models import APIError
+
+        try:
+            data = self._read_json()
+        except Exception as exc:
+            return _bad_request(self, str(exc))
+        alias = (data.get("model") or "").strip()
+        if not alias:
+            return _bad_request(self, "model is required")
+        available = get_updated_models()
+        if alias not in available:
+            return _bad_request(self, f"Unknown model alias: {alias}")
+
+        try:
+            from backend.model_manager import download_and_save_model
+
+            cfg = __import__("backend.model_manager", fromlist=["get_custom_model_config"]).get_custom_model_config(alias)
+            _, _, _, _, _, status = download_and_save_model(
+                cfg.model_name,
+                alias,
+                cfg.num_train_steps,
+                cfg.max_sequence_length,
+                None,
+                base_arch=cfg.base_arch,
+            )
+            if status and status != "Success":
+                return _bad_request(self, status, status=500)
+        except Exception as exc:  # noqa: BLE001
+            return _bad_request(self, f"Model download failed: {exc}", status=500)
+        return _json_response(self, {"status": "ok", "model": alias})
+
+    def handle_model_delete(self):
+        """POST /api/v1/model/delete - delete a locally stored model."""
+        from backend.model_manager import delete_local_model
+        from backend.api_models import APIError
+
+        try:
+            data = self._read_json()
+        except Exception as exc:
+            return _bad_request(self, str(exc))
+        alias = (data.get("model") or "").strip()
+        if not alias:
+            return _bad_request(self, "model is required")
+        removed = delete_local_model(alias)
+        return _json_response(self, {
+            "status": "ok" if removed else "not-found",
+            "model": alias,
+            "removed": removed,
+        })
 
     def handle_system(self):
         """GET /api/v1/system - memory, active model, queue depth."""
