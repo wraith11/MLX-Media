@@ -790,6 +790,8 @@ body {
   .grid-2 {
     grid-template-columns: 1fr;
   }
+}
+
 /* ── Gallery: click-to-enlarge + actions ────────────────────────── */
 
 .gallery-img-btn {
