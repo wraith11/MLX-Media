@@ -374,6 +374,12 @@ class APIServer(BaseHTTPRequestHandler):
             return self.handle_vlm_download()
         if path == "/api/v1/video/setup":
             return self.handle_video_setup()
+        if path == "/api/v1/model/select":
+            return self.handle_model_select()
+        if path == "/api/v1/model/download":
+            return self.handle_model_download()
+        if path == "/api/v1/model/delete":
+            return self.handle_model_delete()
         if path == "/api/v1/photo-imports/inventory":
             return self.handle_photo_import_inventory()
         if path == "/api/v1/photo-batches/plan":
