@@ -152,7 +152,16 @@ def _json_response(handler, payload, status=200):
 
 
 def _photo_import_access_allowed(handler) -> bool:
-    """Keep private photo metadata on loopback and reject non-local web origins."""
+    """Control access to private photo/video routes.
+
+    By default these stay loopback-only to protect local metadata. Set the
+    environment variable ``MFLUX_ALLOW_LAN=1`` (which ``setup.sh`` enables when
+    the host is reachable on the network) to allow access from other devices on
+    the LAN.
+    """
+    if os.environ.get("MFLUX_ALLOW_LAN", "0") == "1":
+        return True
+
     try:
         address = str(handler.client_address[0]).split("%", 1)[0]
         if not ipaddress.ip_address(address).is_loopback:
