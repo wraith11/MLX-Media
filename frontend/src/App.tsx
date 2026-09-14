@@ -286,15 +286,19 @@ function CreatePage({
 
 function EditPage({
   library,
+  initialImage,
+  initialPrompt,
   onGenerated,
   notify,
 }: {
   library: StoredImage[];
+  initialImage: string | null;
+  initialPrompt: string;
   onGenerated: (img: StoredImage) => void;
   notify: (msg: string) => void;
 }) {
-  const [image, setImage] = useState<string | null>(null);
-  const [prompt, setPrompt] = useState("");
+  const [image, setImage] = useState<string | null>(initialImage);
+  const [prompt, setPrompt] = useState(initialPrompt);
   const [mask, setMask] = useState<string | null>(null);
   const [maskMode, setMaskMode] = useState<"manual" | "text">("manual");
   const [textTarget, setTextTarget] = useState("");
@@ -304,6 +308,18 @@ function EditPage({
   const [stage, setStage] = useState("");
   const [result, setResult] = useState<string | null>(null);
   const pollRef = useRef<number | null>(null);
+
+  // When a new image is picked from the gallery, seed the prompt with its original
+  // prompt so regenerating the marked region works without typing.
+  useEffect(() => {
+    if (initialImage && initialImage !== image) {
+      setImage(initialImage);
+      setPrompt(initialPrompt);
+      setResult(null);
+      setMask(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialImage]);
 
   useEffect(() => {
     const id = pollRef.current;
