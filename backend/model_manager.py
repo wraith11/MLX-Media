@@ -436,3 +436,33 @@ def delete_local_model(alias: str) -> bool:
     # Drop the cached config so the UI reflects the deletion immediately.
     MODELS.pop(alias, None)
     return True
+
+def download_model_public(alias: str) -> dict:
+    """Download a public model by alias into the local models/ dir.
+
+    Works without an HF token for public repos. Returns status + size.
+    """
+    config = MODELS.get(alias)
+    if config is None:
+        raise ValueError(f"Unknown model alias: {alias}")
+
+    target_dir = Path("models") / alias
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    snapshot_download(
+        repo_id=config.model_name,
+        local_dir=str(target_dir),
+        token=None,
+        local_dir_use_symlinks=False,
+    )
+
+    # Re-register with the local dir so future loads use the cache.
+    MODELS[alias] = CustomModelConfig(
+        config.model_name,
+        alias,
+        config.num_train_steps,
+        config.max_sequence_length,
+        config.base_arch,
+        local_dir=target_dir,
+    )
+    return get_model_download_status(alias)
