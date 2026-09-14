@@ -755,36 +755,6 @@ function SettingsPage({
         )}
       </section>
 
-      <section className="panel">
-        <div className="section-title">MLX-VLM für Text-Maske</div>
-        <p className="muted">
-          Zum Erzeugen einer Maske aus einer Textbeschreibung („den Hut") nutzt das Backend ein
-          Vision-Language-Modell, das das Objekt im Bild findet. Ist keins installiert, wird es beim
-          ersten Gebrauch automatisch geladen. Du kannst es hier auch vorab herunterladen.
-        </p>
-        {vlm?.has_vlm ? (
-          <p className="muted" style={{ color: "var(--text)" }}>
-            Installiert: {vlm.installed.join(", ")}
-          </p>
-        ) : (
-          <p className="muted">Kein VLM installiert.</p>
-        )}
-        <div className="row-actions">
-          {(vlm?.recommended ?? []).map((m) => {
-            const installed = vlm?.installed.includes(m);
-            return (
-              <button
-                key={m}
-                className="btn"
-                onClick={() => installVlm(m)}
-                disabled={downloading || installed}
-              >
-                {downloading ? <Spinner /> : <Download size={15} />}
-                {installed ? "Installiert" : `Installieren: ${m.split("/").pop()}`}
-              </button>
-            );
-          })}
-        </div>
       </section>
 
       <section className="panel">
