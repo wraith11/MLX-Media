@@ -293,6 +293,8 @@ class APIServer(BaseHTTPRequestHandler):
             return self.handle_v1_models()
         if path == "/api/v1/vlm/status":
             return self.handle_vlm_status()
+        if path == "/api/v1/video/setup/status":
+            return self.handle_video_setup_status()
         if path == "/api/v1/photo-imports/config":
             return self.handle_photo_import_config()
         if path == "/api/v1/video/capabilities":
