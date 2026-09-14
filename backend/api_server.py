@@ -52,6 +52,8 @@ _MAX_JSON_BODY_BYTES = 64 * 1024 * 1024
 _RE_JOB_STREAM = re.compile(r"^/api/v1/jobs/([a-f0-9]+)/stream$")
 _RE_JOB_DETAIL = re.compile(r"^/api/v1/jobs/([a-f0-9]+)$")
 _RE_VIDEO_ARTIFACT = re.compile(
+    r"^/api/v1/video/artifacts/([a-f0-9]+)/([A-Za-z0-9][A-Za-z0-9._-]*)$"
+)
 _RE_BYTE_RANGE = re.compile(r"^bytes=(\d*)-(\d*)$")
 
 # State for the one-time video runner provisioning (triggered from the UI).
@@ -63,8 +65,6 @@ _VIDEO_SETUP_STATE = {
     "started_at": None,
 }
 _VIDEO_SETUP_LOCK = threading.Lock()
-    r"^/api/v1/video/artifacts/([a-f0-9]+)/([A-Za-z0-9][A-Za-z0-9._-]*)$"
-)
 _RE_BYTE_RANGE = re.compile(r"^bytes=(\d*)-(\d*)$")
 
 
