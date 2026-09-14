@@ -835,9 +835,6 @@ function VideoPage({
     </div>
   );
 }
-function ModelsPage({
-  notify,
-}
 function SettingsPage({
   notify,
 }: {
