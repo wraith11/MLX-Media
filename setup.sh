@@ -131,6 +131,7 @@ case "${1:-}" in
   --dev) MODE="dev" ;;
   --rebuild) MODE="rebuild" ;;
   --models) MODE="models" ;;
+  --video) MODE="video" ;;
   --help|-h)
     echo "MLX Media Setup"
     echo "  ./setup.sh           Erstinstallation + Start"
@@ -138,6 +139,7 @@ case "${1:-}" in
     echo "  ./setup.sh --dev     Starten im Entwicklungsmodus (Vite)"
     echo "  ./setup.sh --rebuild Frontend neu bauen (nach Änderungen)"
     echo "  ./setup.sh --models  Inpainting-Modell (FLUX.1-Fill-dev) vorab laden"
+    echo "  ./setup.sh --video   Video-Runner (mlx-video + Wan 2.1) einrichten (groß)"
     exit 0
     ;;
 esac
@@ -149,6 +151,11 @@ fi
 
 if [ "$MODE" = "models" ]; then
   predownload_models
+  exit 0
+fi
+
+if [ "$MODE" = "video" ]; then
+  setup_video
   exit 0
 fi
 
