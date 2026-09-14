@@ -183,4 +183,29 @@ export async function maskFromText(
       text,
     }),
   });
+export interface VlmStatus {
+  default: string;
+  recommended: string[];
+  installed: string[];
+  has_vlm: boolean;
+}
+
+export interface VlmDownloadResult {
+  model: string;
+  local_path: string;
+  installed: boolean;
+}
+
+/** Current MLX VLM status (what is / isn't installed). */
+export async function fetchVlmStatus(): Promise<VlmStatus> {
+  return requestJson<VlmStatus>("/api/v1/vlm/status");
+}
+
+/** Trigger a download of an MLX VLM model (blocks until done). */
+export async function downloadVlm(model?: string): Promise<VlmDownloadResult> {
+  return requestJson<VlmDownloadResult>("/api/v1/vlm/download", {
+    method: "POST",
+    body: JSON.stringify({ model: model ?? "" }),
+  });
+}
 }
