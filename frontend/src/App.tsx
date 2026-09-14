@@ -588,6 +588,114 @@ function LibraryPage({
   );
 }
 
+function ModelsPage({
+  notify,
+}: {
+  notify: (msg: string) => void;
+}) {
+  const [models, setModels] = useState<ModelInfo[]>([]);
+  const [vlm, setVlm] = useState<VlmStatus | null>(null);
+  const [downloading, setDownloading] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const refresh = async () => {
+    setLoading(true);
+    try {
+      const [modelRes, vlmRes] = await Promise.all([fetchModels(), fetchVlmStatus()]);
+      setModels(modelRes.models ?? []);
+      setVlm(vlmRes);
+    } catch (err) {
+      notify(err instanceof Error ? err.message : "Backend nicht erreichbar.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const installVlm = async (model: string) => {
+    if (downloading) return;
+    setDownloading(model);
+    try {
+      const res = await downloadVlm(model);
+      notify(`VLM installiert: ${res.model}`);
+      setVlm((prev) =>
+        prev ? { ...prev, installed: [...prev.installed, res.model], has_vlm: true } : prev
+      );
+    } catch (err) {
+      notify(err instanceof Error ? err.message : "VLM-Download fehlgeschlagen.");
+    } finally {
+      setDownloading(null);
+    }
+  };
+
+  useEffect(() => {
+    void refresh();
+  }, []);
+
+  return (
+    <div className="page">
+      <header className="page-head">
+        <div>
+          <span className="eyebrow">Modelle</span>
+          <h1>Modelle &amp; Fähigkeiten</h1>
+          <p>Lokale MLX-Modelle, MLX-VLM für Text-Masken und Videobereitschaft.</p>
+        </div>
+        <button className="btn" onClick={refresh} disabled={loading}>
+          {loading ? <Spinner /> : null} Aktualisieren
+        </button>
+      </header>
+
+      <section className="panel">
+        <div className="section-title">Generations-Modelle</div>
+        {models.length === 0 ? (
+          <p className="muted">Keine Modelle gefunden.</p>
+        ) : (
+          <div className="model-list">
+            {models.map((m) => (
+              <div className="info-row" key={m.name}>
+                <span>{m.name}</span>
+                <em>{m.capabilities?.join(", ") || "txt2img"}</em>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="panel">
+        <div className="section-title">MLX-VLM für Text-Maske</div>
+        <p className="muted">
+          Zum Erzeugen einer Maske aus einer Textbeschreibung („den Hut") lokalisiert das Backend
+          das Objekt mit einem Vision-Language-Modell. Ist keins installiert, wird das Standardmodell
+          beim ersten Gebrauch automatisch geladen. Hier kannst du es vorab herunterladen.
+        </p>
+        {vlm?.has_vlm ? (
+          <p className="muted" style={{ color: "var(--text)" }}>
+            Installiert: {vlm.installed.join(", ")}
+          </p>
+        ) : (
+          <p className="muted">Kein VLM installiert.</p>
+        )}
+        <div className="row-actions">
+          {(vlm?.recommended ?? []).map((m) => {
+            const installed = vlm?.installed.includes(m);
+            return (
+              <button
+                key={m}
+                className="btn"
+                onClick={() => installVlm(m)}
+                disabled={downloading !== null || installed}
+              >
+                {downloading === m ? <Spinner /> : <Download size={15} />}
+                {installed
+                  ? "Installiert"
+                  : `Installieren: ${m.split("/").pop()}`}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+    </div>
+  );
+}
 function SettingsPage({
   notify,
 }: {
