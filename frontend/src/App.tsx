@@ -506,25 +506,17 @@ function EditPage({
             ) : (
               <div className="text-mask-box">
                 <div className="field">
-                  <span>Was soll bearbeitet werden? (Objekt im Bild)</span>
-                  <input
-                    type="text"
+                  <span>Was soll geändert werden? (beschreibt Maske + Neues)</span>
+                  <textarea
+                    rows={3}
                     value={textTarget}
                     onChange={(e) => setTextTarget(e.target.value)}
-                    placeholder="z.B. den Hut, das Auto, die Person…"
+                    placeholder="z.B. den Hut durch eine Mütze ersetzen, das Auto rot machen…"
                   />
                 </div>
-                <div className="row-actions">
-                  <button
-                    className="btn btn-primary"
-                    onClick={generateMaskFromText}
-                    disabled={maskBusy || !textTarget.trim()}
-                  >
-                    {maskBusy ? <Spinner /> : <Sparkles size={16} />}
-                    {maskBusy ? "Suche…" : "Maske erzeugen"}
-                  </button>
-                  {mask && <span className="muted">Maske erzeugt — im Pinsel-Modus feinjustieren.</span>}
-                </div>
+                <p className="mask-hint">
+                  Das Backend findet das Objekt, erzeugt die Maske und füllt den Bereich neu.
+                </p>
                 {mask && (
                   <div className="preview-image mask-preview">
                     <img src={mask} alt="Erzeugte Maske" />
@@ -536,27 +528,36 @@ function EditPage({
 
           <section className="panel">
             <div className="section-title">Neu zeichnen</div>
-            <div className="field">
-              <span>Was soll im markierten Bereich entstehen?</span>
-              <textarea
-                rows={4}
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="z.B. eine Mütze, ein blauer Himmel, eine Katze…"
-              />
-            </div>
+            {maskMode === "manual" ? (
+              <div className="field">
+                <span>
+                  Was soll im markierten Bereich entstehen? <em className="muted">(leer = mit Original-Prompt neu zeichnen)</em>
+                </span>
+                <textarea
+                  rows={3}
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  placeholder={initialPrompt || "z.B. eine Mütze, ein blauer Himmel, eine Katze…"}
+                />
+              </div>
+            ) : (
+              <p className="muted">
+                Der Text oben wird als Beschreibung für den markierten Bereich verwendet.
+              </p>
+            )}
             <div className="row-actions">
               <button
                 className="btn btn-primary"
                 onClick={startEdit}
                 disabled={
                   running ||
-                  !image ||
-                  !prompt.trim() ||
-                  (maskMode === "manual" && !mask)
+                  maskBusy ||
+                  (maskMode === "manual" && !mask) ||
+                  (maskMode === "text" && !textTarget.trim())
                 }
               >
-                {running ? <Spinner /> : <Wand2 size={16} />} {running ? "Bearbeite…" : "Inpainting starten"}
+                {running || maskBusy ? <Spinner /> : <Wand2 size={16} />}
+                {running ? "Bearbeite…" : maskBusy ? "Erzeuge Maske…" : "Inpainting starten"}
               </button>
               {running && (
                 <div className="progress-line">
