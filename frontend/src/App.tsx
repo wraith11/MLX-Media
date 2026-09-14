@@ -1063,6 +1063,8 @@ export default function App() {
         return <EditPage library={library} onGenerated={onGenerated} notify={notify} />;
       case "library":
         return <LibraryPage user={activeUser} library={library} onDelete={onDelete} notify={notify} />;
+      case "video":
+        return <VideoPage notify={notify} />;
       case "models":
         return <ModelsPage notify={notify} />;
       case "settings":
