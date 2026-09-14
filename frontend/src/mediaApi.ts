@@ -210,3 +210,112 @@ export async function downloadVlm(model?: string): Promise<VlmDownloadResult> {
     body: JSON.stringify({ model: model ?? "" }),
   });
 }
+
+export interface VideoCapability {
+  id: string;
+  label: string;
+  type: string;
+  operations: string[];
+  availability: string;
+  availability_reason: string;
+  engine: { source: string; revision: string; license: string; tested: boolean };
+  model: {
+    source: string;
+    revision: string;
+    license: string;
+    converted_local: boolean;
+    configured: boolean;
+    cached: boolean;
+    smoke_tested: boolean;
+  };
+  parameters: {
+    prompt: { min_length: number; max_length: number };
+    width: { fixed: number };
+    height: { fixed: number };
+    num_frames: { minimum: number; maximum: number; rule: string };
+    fps: { fixed: number };
+    steps: { minimum: number; maximum: number; default: number };
+    scheduler: { fixed: string };
+    tiling: { allowed: string[]; default: string };
+    seed: { minimum: number; maximum: number; optional: boolean };
+  };
+  output: { container: string; audio: string };
+  isolation: string;
+  concurrency: string;
+  cancel_mode: string;
+}
+
+export interface VideoStatus {
+  schema_version: number;
+  state: string;
+  ready: boolean;
+  apple_silicon: boolean;
+  engine: { configured: boolean; available: boolean; tested: boolean };
+  model: {
+    configured: boolean;
+    cached: boolean;
+    converted: boolean;
+    smoke_tested: boolean;
+  };
+  reasons: { code: string; message: string }[];
+  active_media_job?: { id: string; type: string };
+}
+
+export interface VideoJobResult {
+  status: string;
+  job_id: string;
+  capability_id: string;
+  artifact_urls: {
+    video?: string;
+    provenance?: string;
+    request?: string;
+  };
+  output?: { container: string; sha256: string; size_bytes: number };
+}
+
+/** Fetch the exact locally-supported video capability registry. */
+export async function fetchVideoCapabilities(): Promise<VideoCapability> {
+  return requestJson<VideoCapability>("/api/v1/video/capabilities");
+}
+
+/** Fetch isolated video runner readiness. */
+export async function fetchVideoStatus(): Promise<VideoStatus> {
+  return requestJson<VideoStatus>("/api/v1/video/status");
+}
+
+/**
+ * Submit a text-to-video job. Builds the exact payload the audited runner
+ * requires (fixed 832x480@16fps, 4n+1 frames, unipc scheduler).
+ */
+export async function submitVideo(params: {
+  prompt: string;
+  num_frames: number;
+  steps: number;
+  tiling?: string;
+  seed?: number | null;
+}): Promise<{ job_id: string; status: string; type: string }> {
+  const payload = {
+    schema_version: 1,
+    type: "video",
+    operation: "text-to-video",
+    capability_id: "wan-2.1-t2v-1.3b",
+    prompt: params.prompt,
+    output: {
+      width: 832,
+      height: 480,
+      num_frames: params.num_frames,
+      fps: 16,
+      container: "mp4",
+    },
+    sampling: {
+      steps: params.steps,
+      scheduler: "unipc",
+      tiling: params.tiling ?? "auto",
+      ...(params.seed != null ? { seed: params.seed } : {}),
+    },
+  };
+  return requestJson("/api/v1/generate", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
