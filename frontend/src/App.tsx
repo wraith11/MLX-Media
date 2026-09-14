@@ -33,15 +33,18 @@ import {
 import {
   base64ToDataUrl,
   dataUrlToBase64,
+  downloadVlm,
   fetchJob,
   fetchModels,
   fetchSystem,
+  fetchVlmStatus,
   isTerminal,
   maskFromText,
   submitGenerate,
   type Job,
   type ModelInfo,
   type SystemInfo,
+  type VlmStatus,
 } from "./mediaApi";
 import MaskEditor from "./MaskEditor";
 
