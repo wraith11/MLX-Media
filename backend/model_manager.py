@@ -409,4 +409,28 @@ def update_guidance_visibility(model):
 def get_model_choices():
     gr = _get_gradio()
     models = get_updated_models()
+def get_model_download_status(alias: str) -> dict:
+    """Report whether a model alias is already present locally (and its size)."""
+    local = resolve_local_path(alias)
+    if local and local.is_dir():
+        total = sum(
+            f.stat().st_size
+            for f in local.rglob("*")
+            if f.is_file()
+        )
+        return {"downloaded": True, "size_bytes": total, "local_path": str(local)}
+    return {"downloaded": False, "size_bytes": 0, "local_path": None}
+
+
+def delete_local_model(alias: str) -> bool:
+    """Remove a locally downloaded model directory. Returns True if removed."""
+    local = resolve_local_path(alias)
+    if not local or not local.is_dir():
+        return False
+    import shutil
+
+    shutil.rmtree(local)
+    # Drop the cached config so the UI reflects the deletion immediately.
+    MODELS.pop(alias, None)
+    return True
     return gr.update(choices=models) if models else gr.update()
