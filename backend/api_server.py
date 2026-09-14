@@ -370,6 +370,8 @@ class APIServer(BaseHTTPRequestHandler):
             return self.handle_mask_from_text()
         if path == "/api/v1/vlm/download":
             return self.handle_vlm_download()
+        if path == "/api/v1/video/setup":
+            return self.handle_video_setup()
         if path == "/api/v1/photo-imports/inventory":
             return self.handle_photo_import_inventory()
         if path == "/api/v1/photo-batches/plan":
