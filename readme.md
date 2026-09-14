@@ -23,11 +23,8 @@ minimal frontend** that actually talks to the local MLX backend:
 - **Galerie** — deine erzeugten Bilder, pro Benutzer getrennt.
 - **Video** — **Text zu Video** über den isolierten Wan-2.1-Runner (832×480,
   16 fps). Einmalig einrichten mit `./setup.sh --video`.
-- **Modelle** — lokale MLX-Generationsmodelle ansehen, MLX-VLM für Text-Masken
-  herunterladen und bereitstellen.
-- **Benutzer** — mehrere Benutzer mit eigenem, getrenntem Bildbereich (im Browser
-  gespeichert).
-- **Einstellungen** — Backend-Status + Modellübersicht.
+- **Einstellungen** — Systemstatus, aktives Modell wählen, Modelle herunterladen
+  und von der Platte löschen, MLX-VLM für Text-Masken bereitstellen.
 - Start-/Home-Tab und Time Lens wurden entfernt.
 - Die Oberfläche ist deutsch, schlank und **Firefox-kompatibel**.
 
