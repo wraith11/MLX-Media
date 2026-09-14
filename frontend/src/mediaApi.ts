@@ -17,7 +17,8 @@ export type JobTypeValue =
   | "img2img"
   | "inpaint"
   | "controlnet"
-  | "upscale";
+  | "upscale"
+  | "video";
 
 export interface JobProgress {
   current_image: number;
