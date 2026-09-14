@@ -986,8 +986,6 @@ class APIServer(BaseHTTPRequestHandler):
 
     def _video_setup_runner(self):
         """Run the pinned provisioner in the background and record its output."""
-        from backend import video_runner
-
         repo_root = Path(__file__).resolve().parents[1]
         script = repo_root / "scripts" / "setup_mlx_video_runner.py"
         command = [sys.executable, str(script), "provision"]
