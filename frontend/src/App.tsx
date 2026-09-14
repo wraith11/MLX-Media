@@ -608,7 +608,9 @@ function VideoPage({
   const [stage, setStage] = useState("");
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
+  const [setup, setSetup] = useState<VideoSetupStatus | null>(null);
   const pollRef = useRef<number | null>(null);
+  const setupPollRef = useRef<number | null>(null);
 
   const refresh = async () => {
     try {
@@ -621,11 +623,39 @@ function VideoPage({
   useEffect(() => {
     void refresh();
     const id = pollRef.current;
+    const sid = setupPollRef.current;
     return () => {
       if (id !== null) window.clearInterval(id);
+      if (sid !== null) window.clearInterval(sid);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /** Start provisioning from the UI and poll its progress. */
+  const startSetup = async () => {
+    try {
+      await startVideoSetup();
+      setSetup({ running: true, done: false, error: null, tail: [], started_at: Date.now() });
+      notify("Video-Runner-Einrichtung gestartet (kann lange dauern).");
+      setupPollRef.current = window.setInterval(async () => {
+        let s: VideoSetupStatus;
+        try {
+          s = await fetchVideoSetupStatus();
+        } catch {
+          return;
+        }
+        setSetup(s);
+        if (!s.running && (s.done || s.error)) {
+          if (setupPollRef.current !== null) window.clearInterval(setupPollRef.current);
+          setupPollRef.current = null;
+          notify(s.error ? `Video-Einrichtung fehlgeschlagen: ${s.error}` : "Video-Runner bereit.");
+          void refresh();
+        }
+      }, 2000);
+    } catch (err) {
+      notify(err instanceof Error ? err.message : "Video-Einrichtung konnte nicht gestartet werden.");
+    }
+  };
 
   const startVideo = async () => {
     if (!prompt.trim() || running) return;
