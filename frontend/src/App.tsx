@@ -1029,7 +1029,7 @@ function SettingsPage({
         <div className="row-actions">
           {(vlm?.recommended ?? []).map((m) => {
             const installed = vlm?.installed.includes(m);
-            const vlmBusy = busy === `vlm:${m}`);
+            const vlmBusy = busy === `vlm:${m}`;
             return (
               <button
                 key={m}
