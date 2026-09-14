@@ -1107,6 +1107,7 @@ export default function App() {
   });
   const [library, setLibrary] = useState<StoredImage[]>(() => loadLibrary(loadUsers()[0]));
   const [page, setPage] = useState<PageId>("create");
+  const [editTarget, setEditTarget] = useState<StoredImage | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [newUserName, setNewUserName] = useState("");
   const [notice, setNotice] = useState("");
