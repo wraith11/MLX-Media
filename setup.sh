@@ -108,6 +108,10 @@ start_prod() {
     build_frontend
   fi
   log "Starte Backend + WebUI auf http://$HOST:$PORT"
+  # Allow photo/video routes from LAN devices when bound to a network host.
+  if [ "$HOST" != "127.0.0.1" ] && [ "$HOST" != "localhost" ]; then
+    export MFLUX_ALLOW_LAN=1
+  fi
   cd "$ROOT_DIR"
   exec "$VENV_DIR/bin/python" api_main.py --host "$HOST" --port "$PORT"
 }
@@ -117,6 +121,9 @@ start_dev() {
   require_command npm
   log "Starte Backend auf http://$HOST:$PORT …"
   cd "$ROOT_DIR"
+  if [ "$HOST" != "127.0.0.1" ] && [ "$HOST" != "localhost" ]; then
+    export MFLUX_ALLOW_LAN=1
+  fi
   "$VENV_DIR/bin/python" api_main.py --host "$HOST" --port "$PORT" &
   BACKEND_PID=$!
   trap "kill $BACKEND_PID 2>/dev/null || true" EXIT
