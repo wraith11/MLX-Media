@@ -345,6 +345,8 @@ class APIServer(BaseHTTPRequestHandler):
             return self.handle_generate()
         if path == "/api/v1/mask-from-text":
             return self.handle_mask_from_text()
+        if path == "/api/v1/vlm/status":
+            return self.handle_vlm_status()
         if path == "/api/v1/photo-imports/inventory":
             return self.handle_photo_import_inventory()
         if path == "/api/v1/photo-batches/plan":
