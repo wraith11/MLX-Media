@@ -409,6 +409,9 @@ def update_guidance_visibility(model):
 def get_model_choices():
     gr = _get_gradio()
     models = get_updated_models()
+    return gr.update(choices=models) if models else gr.update()
+
+
 def get_model_download_status(alias: str) -> dict:
     """Report whether a model alias is already present locally (and its size)."""
     local = resolve_local_path(alias)
@@ -433,4 +436,3 @@ def delete_local_model(alias: str) -> bool:
     # Drop the cached config so the UI reflects the deletion immediately.
     MODELS.pop(alias, None)
     return True
-    return gr.update(choices=models) if models else gr.update()
