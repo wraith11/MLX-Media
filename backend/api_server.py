@@ -1348,9 +1348,9 @@ class APIServer(BaseHTTPRequestHandler):
             return _bad_request(self, f"Unknown model alias: {alias}")
 
         try:
-            from backend.model_manager import download_and_save_model
+            from backend.model_manager import download_and_save_model, get_custom_model_config
 
-            cfg = __import__("backend.model_manager", fromlist=["get_custom_model_config"]).get_custom_model_config(alias)
+            cfg = get_custom_model_config(alias)
             _, _, _, _, _, status = download_and_save_model(
                 cfg.model_name,
                 alias,
