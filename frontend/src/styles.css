@@ -616,6 +616,8 @@ body {
   .grid-3 {
     grid-template-columns: 1fr;
   }
+}
+
 /* ── Mask editor (Inpainting) ────────────────────────────────────── */
 
 .mask-mode-tabs {
