@@ -210,4 +210,3 @@ export async function downloadVlm(model?: string): Promise<VlmDownloadResult> {
     body: JSON.stringify({ model: model ?? "" }),
   });
 }
-}
