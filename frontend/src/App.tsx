@@ -50,7 +50,6 @@ import {
   submitVideo,
   type Job,
   type ModelInfo,
-  type ModelsResult,
   type SystemInfo,
   type VideoSetupStatus,
   type VideoStatus,
