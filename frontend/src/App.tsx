@@ -591,6 +591,198 @@ function LibraryPage({
   );
 }
 
+function VideoPage({
+  notify,
+}: {
+  notify: (msg: string) => void;
+}) {
+  const [status, setStatus] = useState<VideoStatus | null>(null);
+  const [prompt, setPrompt] = useState("");
+  const [frames, setFrames] = useState(25);
+  const [steps, setSteps] = useState(10);
+  const [running, setRunning] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [stage, setStage] = useState("");
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
+  const pollRef = useRef<number | null>(null);
+
+  const refresh = async () => {
+    try {
+      setStatus(await fetchVideoStatus());
+    } catch (err) {
+      notify(err instanceof Error ? err.message : "Video-Status nicht erreichbar.");
+    }
+  };
+
+  useEffect(() => {
+    void refresh();
+    const id = pollRef.current;
+    return () => {
+      if (id !== null) window.clearInterval(id);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const startVideo = async () => {
+    if (!prompt.trim() || running) return;
+    setRunning(true);
+    setVideoUrl(null);
+    setProgress(0);
+    setStage("eingereiht…");
+    try {
+      const submitted = await submitVideo({
+        prompt: prompt.trim(),
+        num_frames: frames,
+        steps,
+      });
+      const id = submitted.job_id;
+      setJobId(id);
+
+      pollRef.current = window.setInterval(async () => {
+        let job: Job;
+        try {
+          job = await fetchJob(id);
+        } catch {
+          return;
+        }
+        setProgress(job.progress?.percent ?? 0);
+        setStage(job.progress?.stage || job.status);
+        if (isTerminal(job.status)) {
+          if (pollRef.current !== null) window.clearInterval(pollRef.current);
+          setRunning(false);
+          if (job.status === "completed") {
+            const url = job.result?.artifact_urls?.video;
+            if (url) {
+              setVideoUrl(url);
+              notify("Video fertig.");
+            } else {
+              setStage("Video fertig, aber kein Artefakt gefunden.");
+              notify("Video fertig, aber kein Artefakt gefunden.");
+            }
+          } else {
+            setStage(job.error?.message || "Fehlgeschlagen");
+            notify(job.error?.message || "Videogenerierung fehlgeschlagen.");
+          }
+        }
+      }, 1500);
+    } catch (err) {
+      setRunning(false);
+      setStage(err instanceof Error ? err.message : "Fehler");
+      notify(err instanceof Error ? err.message : "Fehler");
+    }
+  };
+
+  const framesValid = frames >= 5 && frames <= 81 && (frames - 1) % 4 === 0;
+
+  return (
+    <div className="page">
+      <header className="page-head">
+        <div>
+          <span className="eyebrow">Video</span>
+          <h1>Text zu Video</h1>
+          <p>Wan 2.1 T2V 1.3B — lokal, isoliert, 832×480 @ 16 fps.</p>
+        </div>
+        <button className="btn" onClick={refresh}>
+          Status aktualisieren
+        </button>
+      </header>
+
+      {status && !status.ready && (
+        <section className="panel">
+          <div className="section-title">Einrichtung erforderlich</div>
+          <p className="muted">
+            Der isolierte Video-Runner ist noch nicht bereit. Richte ihn einmalig ein:
+          </p>
+          <pre className="setup-code">
+            ./setup.sh --video
+          </pre>
+          {status.reasons && status.reasons.length > 0 && (
+            <ul className="setup-reasons">
+              {status.reasons.map((r) => (
+                <li key={r.code}>{r.message}</li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {status?.ready && (
+        <section className="panel">
+          <div className="section-title">Neues Video</div>
+          <div className="field">
+            <span>Beschreibung (was soll passieren?)</span>
+            <textarea
+              rows={4}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="z.B. Eine Drohne fliegt über eine Bergkette bei Sonnenuntergang…"
+            />
+          </div>
+          <div className="grid-2">
+            <div className="field">
+              <span>Frames ({frames}) — 4n+1, 5–81</span>
+              <input
+                type="range"
+                min={5}
+                max={81}
+                step={4}
+                value={frames}
+                onChange={(e) => setFrames(Number(e.target.value))}
+              />
+              {!framesValid && <span className="muted">Muss der 4n+1-Regel folgen.</span>}
+            </div>
+            <div className="field">
+              <span>Schritte ({steps}) — 1–50</span>
+              <input
+                type="range"
+                min={1}
+                max={50}
+                value={steps}
+                onChange={(e) => setSteps(Number(e.target.value))}
+              />
+            </div>
+          </div>
+          <div className="row-actions">
+            <button
+              className="btn btn-primary"
+              onClick={startVideo}
+              disabled={running || !prompt.trim() || !framesValid}
+            >
+              {running ? <Spinner /> : <Play size={16} />} {running ? "Generiere…" : "Video generieren"}
+            </button>
+            {running && (
+              <div className="progress-line">
+                <ProgressBar percent={progress} />
+                <span>{stage}</span>
+              </div>
+            )}
+          </div>
+          {videoUrl && (
+            <div className="video-result">
+              <video src={videoUrl} controls style={{ width: "100%", borderRadius: 12 }} />
+              <div className="result-actions">
+                <a className="btn" href={videoUrl} download="video.mp4">
+                  <Download size={15} /> MP4 speichern
+                </a>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {status?.ready && running && jobId && (
+        <section className="panel">
+          <div className="section-title">Job</div>
+          <div className="info-row">
+            <span>Job-ID</span>
+            <strong>{jobId}</strong>
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
 function ModelsPage({
   notify,
 }: {
