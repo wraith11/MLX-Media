@@ -723,12 +723,13 @@ function SettingsPage({
 
 /* ── App shell ───────────────────────────────────────────────────── */
 
-type PageId = "create" | "edit" | "library" | "settings";
+type PageId = "create" | "edit" | "library" | "models" | "settings";
 
 const NAV: { id: PageId; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
   { id: "create", label: "Bilder erzeugen", icon: Sparkles },
   { id: "edit", label: "Bild bearbeiten", icon: Wand2 },
   { id: "library", label: "Galerie", icon: Images },
+  { id: "models", label: "Modelle", icon: Settings },
   { id: "settings", label: "Einstellungen", icon: Settings },
 ];
 
