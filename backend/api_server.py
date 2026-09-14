@@ -28,6 +28,7 @@ Default: host=127.0.0.1, port=7861
 import base64
 import json
 import re
+import subprocess
 import sys
 import tempfile
 import threading
