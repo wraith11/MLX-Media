@@ -58,6 +58,13 @@ export interface ModelInfo {
   capabilities: string[];
   base_arch?: string;
   hf_name?: string;
+  downloaded?: boolean;
+  size_bytes?: number;
+}
+
+export interface ModelsResult {
+  models: ModelInfo[];
+  active: string;
 }
 
 export interface SystemInfo {
