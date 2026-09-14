@@ -546,13 +546,17 @@ function LibraryPage({
   user,
   library,
   onDelete,
+  onEdit,
   notify,
 }: {
   user: string;
   library: StoredImage[];
   onDelete: (id: string) => void;
+  onEdit: (item: StoredImage) => void;
   notify: (msg: string) => void;
 }) {
+  const [lightbox, setLightbox] = useState<StoredImage | null>(null);
+
   return (
     <div className="page">
       <header className="page-head">
@@ -574,12 +578,25 @@ function LibraryPage({
             .reverse()
             .map((item) => (
               <div className="result-card" key={item.id}>
-                <img src={item.dataUrl} alt={item.prompt} />
+                <button
+                  className="gallery-img-btn"
+                  onClick={() => setLightbox(item)}
+                  title="Vergrößern"
+                >
+                  <img src={item.dataUrl} alt={item.prompt} />
+                </button>
                 <div className="result-caption">{item.prompt}</div>
                 <div className="result-actions">
                   <a className="btn" href={item.dataUrl} download={`bild-${item.id}.png`}>
                     <Download size={15} /> Speichern
                   </a>
+                  <button
+                    className="btn"
+                    onClick={() => onEdit(item)}
+                    title="Zum Inpainting übernehmen"
+                  >
+                    <Wand2 size={15} /> Zum Inpaint
+                  </button>
                   <button
                     className="btn btn-danger"
                     onClick={() => {
@@ -593,6 +610,27 @@ function LibraryPage({
               </div>
             ))}
         </section>
+      )}
+
+      {lightbox && (
+        <div className="lightbox" onClick={() => setLightbox(null)}>
+          <img src={lightbox.dataUrl} alt={lightbox.prompt} onClick={(e) => e.stopPropagation()} />
+          <div className="lightbox-actions" onClick={(e) => e.stopPropagation()}>
+            <span className="muted">{lightbox.prompt}</span>
+            <button
+              className="btn"
+              onClick={() => {
+                onEdit(lightbox);
+                setLightbox(null);
+              }}
+            >
+              <Wand2 size={15} /> Zum Inpaint
+            </button>
+            <button className="btn" onClick={() => setLightbox(null)}>
+              Schließen
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
