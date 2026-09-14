@@ -135,12 +135,33 @@ export async function fetchHealth(): Promise<{ status: string }> {
   return requestJson<{ status: string }>("/api/v1/health");
 }
 
-export async function fetchModels(): Promise<{ models: ModelInfo[] }> {
-  return requestJson<{ models: ModelInfo[] }>("/api/v1/models");
+export async function fetchModels(): Promise<ModelsResult> {
+  return requestJson<ModelsResult>("/api/v1/models");
 }
 
 export async function fetchSystem(): Promise<SystemInfo> {
   return requestJson<SystemInfo>("/api/v1/system");
+}
+
+export async function selectModel(model: string): Promise<{ status: string; active: string }> {
+  return requestJson("/api/v1/model/select", {
+    method: "POST",
+    body: JSON.stringify({ model }),
+  });
+}
+
+export async function downloadModel(model: string): Promise<{ status: string; model: string }> {
+  return requestJson("/api/v1/model/download", {
+    method: "POST",
+    body: JSON.stringify({ model }),
+  });
+}
+
+export async function deleteModel(model: string): Promise<{ status: string; removed: boolean }> {
+  return requestJson("/api/v1/model/delete", {
+    method: "POST",
+    body: JSON.stringify({ model }),
+  });
 }
 
 export async function fetchQueue(): Promise<QueueInfo> {
