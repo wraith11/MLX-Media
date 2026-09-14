@@ -291,6 +291,24 @@ export async function fetchVideoStatus(): Promise<VideoStatus> {
   return requestJson<VideoStatus>("/api/v1/video/status");
 }
 
+export interface VideoSetupStatus {
+  running: boolean;
+  done: boolean;
+  error: string | null;
+  tail: string[];
+  started_at: number | null;
+}
+
+/** Start the one-time video runner provisioning in the background. */
+export async function startVideoSetup(): Promise<{ status: string; running: boolean }> {
+  return requestJson("/api/v1/video/setup", { method: "POST" });
+}
+
+/** Poll video runner provisioning progress. */
+export async function fetchVideoSetupStatus(): Promise<VideoSetupStatus> {
+  return requestJson<VideoSetupStatus>("/api/v1/video/setup/status");
+}
+
 /**
  * Submit a text-to-video job. Builds the exact payload the audited runner
  * requires (fixed 832x480@16fps, 4n+1 frames, unipc scheduler).
