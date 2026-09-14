@@ -932,6 +932,26 @@ class APIServer(BaseHTTPRequestHandler):
         if not (0.0 <= x1 <= 1.0 and 0.0 <= y1 <= 1.0) or not (0.0 <= x2 <= 1.0 and 0.0 <= y2 <= 1.0):
             return None
         return (min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2))
+    def handle_vlm_status(self):
+        """GET /api/v1/vlm/status - which (if any) MLX VLM is installed."""
+        from backend import mlx_vlm_manager as vlm
+        return _json_response(self, vlm.vlm_status())
+
+    def handle_vlm_download(self):
+        """POST /api/v1/vlm/download - download a recommended MLX VLM."""
+        from backend import mlx_vlm_manager as vlm
+
+        try:
+            data = self._read_json()
+        except Exception:
+            data = {}
+        model = (data.get("model") or "").strip() or vlm.DEFAULT_VLM
+
+        try:
+            result = vlm.download_vlm(model)
+        except Exception as exc:  # noqa: BLE001
+            return _bad_request(self, f"VLM download failed: {exc}", status=500)
+        return _json_response(self, result)
     def handle_get_job(self, job_id: str):
         """GET /api/v1/jobs/{id} - get job status."""
         from backend.api_models import APIError
