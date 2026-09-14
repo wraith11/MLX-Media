@@ -1182,9 +1182,25 @@ export default function App() {
       case "create":
         return <CreatePage onGenerated={onGenerated} notify={notify} />;
       case "edit":
-        return <EditPage library={library} onGenerated={onGenerated} notify={notify} />;
+        return (
+          <EditPage
+            library={library}
+            initialImage={editTarget?.dataUrl ?? null}
+            initialPrompt={editTarget?.prompt ?? ""}
+            onGenerated={onGenerated}
+            notify={notify}
+          />
+        );
       case "library":
-        return <LibraryPage user={activeUser} library={library} onDelete={onDelete} notify={notify} />;
+        return (
+          <LibraryPage
+            user={activeUser}
+            library={library}
+            onDelete={onDelete}
+            onEdit={goEdit}
+            notify={notify}
+          />
+        );
       case "video":
         return <VideoPage notify={notify} />;
       case "settings":
