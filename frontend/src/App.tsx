@@ -1143,8 +1143,6 @@ export default function App() {
         return <LibraryPage user={activeUser} library={library} onDelete={onDelete} notify={notify} />;
       case "video":
         return <VideoPage notify={notify} />;
-      case "models":
-        return <ModelsPage notify={notify} />;
       case "settings":
         return <SettingsPage notify={notify} />;
     }
