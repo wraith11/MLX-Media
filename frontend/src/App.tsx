@@ -725,11 +725,20 @@ function VideoPage({
         <section className="panel">
           <div className="section-title">Einrichtung erforderlich</div>
           <p className="muted">
-            Der isolierte Video-Runner ist noch nicht bereit. Richte ihn einmalig ein:
+            Der isolierte Video-Runner ist noch nicht bereit. Starte die Einrichtung per
+            Button unten — das lädt die Engine und das Wan-Modell und konvertiert sie
+            (mehrere GiB, kann je nach Internet lange dauern).
           </p>
-          <pre className="setup-code">
-            ./setup.sh --video
-          </pre>
+          <div className="row-actions">
+            <button
+              className="btn btn-primary"
+              onClick={startSetup}
+              disabled={setup?.running}
+            >
+              {setup?.running ? <Spinner /> : <Download size={16} />}
+              {setup?.running ? "Einrichtung läuft…" : "Video-Runner einrichten"}
+            </button>
+          </div>
           {status.reasons && status.reasons.length > 0 && (
             <ul className="setup-reasons">
               {status.reasons.map((r) => (
@@ -737,6 +746,12 @@ function VideoPage({
               ))}
             </ul>
           )}
+          {setup && setup.tail.length > 0 && (
+            <pre className="setup-log">
+              {setup.tail.slice(-40).join("\n")}
+            </pre>
+          )}
+          {setup?.error && <p className="muted" style={{ color: "var(--danger)" }}>Fehler: {setup.error}</p>}
         </section>
       )}
 
