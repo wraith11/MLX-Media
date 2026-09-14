@@ -183,6 +183,8 @@ export async function maskFromText(
       text,
     }),
   });
+}
+
 export interface VlmStatus {
   default: string;
   recommended: string[];
