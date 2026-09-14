@@ -17,8 +17,9 @@ minimal frontend** that actually talks to the local MLX backend:
   erzeugten oder hochgeladenen Bildern:
   - manuell per **Pinsel**, **Lasso** oder **Radierer** (Canvas-Masken-Editor),
   - oder per **Textbeschreibung** (Backend lokalisiert das Objekt mit einem
-    MLX-VLM und erzeugt automatisch eine Maske; ohne VLM wird eine
-    Fallback-Maske in der Bildmitte gesetzt und manuell feinjustiert).
+    **MLX-VLM** und erzeugt automatisch eine Maske; das Standardmodell ist
+    `Qwen2.5-VL-7B-Instruct-4bit` und wird beim ersten Gebrauch automatisch
+    von Hugging Face geladen).
 - **Galerie** — deine erzeugten Bilder, pro Benutzer getrennt.
 - **Benutzer** — mehrere Benutzer mit eigenem, getrenntem Bildbereich (im Browser
   gespeichert).
