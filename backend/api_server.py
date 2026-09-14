@@ -863,12 +863,17 @@ class APIServer(BaseHTTPRequestHandler):
         try:
             from backend import mlx_vlm_manager as vlm
 
-            model_name = data.get("model")
+            model_name = data.get("model") or ""
             if not model_name:
                 available = vlm.get_available_mlx_vlm_models()
-                model_name = available[0] if available else None
+                model_name = available[0] if available else vlm.DEFAULT_VLM
+
             if model_name:
                 used_model = model_name
+                # Auto-download if not already in the local HF cache.
+                if not vlm.vlm_is_installed(model_name):
+                    print(f"Mask-from-text: downloading VLM {model_name} …")
+                    vlm.download_vlm(model_name)
                 model, processor, config = vlm.load_mlx_model(model_name)
                 if model is not None and processor is not None:
                     prompt = (
