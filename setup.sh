@@ -146,7 +146,7 @@ case "${1:-}" in
     echo "  ./setup.sh --serve   Nur starten (Backend + gebautes Frontend)"
     echo "  ./setup.sh --dev     Starten im Entwicklungsmodus (Vite)"
     echo "  ./setup.sh --rebuild Frontend neu bauen (nach Änderungen)"
-    echo "  ./setup.sh --models  Inpainting-Modell (FLUX.1-Fill-dev) vorab laden"
+    echo "  ./setup.sh --models  Flux2-Klein-Modell (Generierung + Inpainting) vorab laden"
     echo "  ./setup.sh --video   Video-Runner (mlx-video + Wan 2.1) einrichten (groß)"
     exit 0
     ;;
