@@ -291,6 +291,8 @@ class APIServer(BaseHTTPRequestHandler):
             return self.handle_health()
         if path == "/api/v1/models":
             return self.handle_v1_models()
+        if path == "/api/v1/cache/status":
+            return self.handle_cache_status()
         if path == "/api/v1/vlm/status":
             return self.handle_vlm_status()
         if path == "/api/v1/video/setup/status":
