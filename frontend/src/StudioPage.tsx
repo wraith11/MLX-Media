@@ -11,6 +11,7 @@
  *              automatically (e.g. "den Hut durch eine Mütze ersetzen").
  *   - BELOW  : the gallery. Clicking an image loads it into the workspace.
  */
+import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import {
   Download,
