@@ -45,10 +45,11 @@ minimal frontend** that actually talks to the local MLX backend:
 
 ### Inpainting-Hinweis
 
-Der Inpainting-Pfad nutzt **FLUX.1-Fill-dev** (`backend/fill_manager.py`), das beim
-ersten Inpainting automatisch von Hugging Face heruntergeladen wird
-(zusätzlich zum Flux2-Klein-Modell für „Bilder erzeugen“). Dafür ist etwas mehr
-Festplatten- und Arbeitsspeicher nötig.
+Inpainting nutzt **kein separates Fill-Modell**. FLUX.2 vereint Bildgenerierung und
+Bearbeitung in einer Architektur — der maskierte Bereich wird mit dem **bereits
+geladenen Flux2-Klein-Modell** neu gezeichnet und nur im maskierten Bereich auf das
+Original zurückgesetzt (Compositing). Es wird also **kein weiteres Modell geladen**
+und kein zusätzlicher Speicher für einen zweiten Checkpoint belegt.
 
 ### Ein-Skript-Setup
 
