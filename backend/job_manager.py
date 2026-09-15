@@ -315,10 +315,11 @@ class JobManager:
 
     def _run_inpaint(self, job: Job, params: dict, progress_callback):
         """
-        Real mask-based inpainting through FLUX.1-Fill-dev.
+        Mask-based inpainting using the already-loaded FLUX.2 model.
         Requires an init image plus a mask (white = region to regenerate).
+        The FLUX.2 img2img edit is generated and composited into the mask.
         """
-        from backend.fill_manager import generate_fill_gradio
+        from backend.flux_manager import generate_image_inpaint_gradio
         from backend.api_server import _decode_base64_image
 
         prompt = params.get("prompt", "")
@@ -334,19 +335,18 @@ class JobManager:
 
         width = int(params.get("width", image.width))
         height = int(params.get("height", image.height))
-        steps = params.get("steps", 25)
-        guidance = float(params.get("guidance", 30.0))
+        steps = str(params.get("steps", ""))
+        guidance = float(params.get("guidance", 3.5))
+        # image_strength controls how strongly the edit follows the prompt.
+        image_strength = float(params.get("image_strength", 0.75))
         num_images = int(params.get("num_images", 1))
         seed = params.get("seed")
-        if seed is None:
-            seed = "random"
-        elif not isinstance(seed, str):
-            seed = str(seed)
+        lora_files = params.get("lora_files") or None
         low_ram = bool(params.get("low_ram", False))
 
         progress_callback("stage", "loading_model")
 
-        images, info, used_prompt = generate_fill_gradio(
+        images, info, used_prompt = generate_image_inpaint_gradio(
             prompt,
             image,
             mask_img,
@@ -356,9 +356,12 @@ class JobManager:
             width,
             steps,
             guidance,
+            image_strength,
+            lora_files,
             False,
             num_images=num_images,
             low_ram=low_ram,
+            progress_callback=progress_callback,
         )
 
         if job.status == JobStatus.cancelled:
