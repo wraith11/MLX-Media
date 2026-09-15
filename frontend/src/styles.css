@@ -915,4 +915,106 @@ body {
     width: 100%;
     flex-wrap: wrap;
   }
+/* ── Studio workspace (generate + edit + gallery) ───────────────── */
+
+.studio .page-head {
+  margin-bottom: 4px;
+}
+
+.studio-grid {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr) 260px;
+  gap: 16px;
+  align-items: start;
+}
+
+.studio-col {
+  min-width: 0;
+}
+
+.studio-generate .grid-2 {
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.studio-canvas {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.studio-canvas-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mask-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.mask-toggle input {
+  accent-color: var(--accent);
+}
+
+.studio-mask-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+  background: var(--surface);
+}
+
+.studio-preview img {
+  width: 100%;
+  border-radius: var(--radius);
+  display: block;
+  background: #000;
+}
+
+.studio-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.studio-gallery .result-card img {
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.studio-gallery .result-actions .btn {
+  flex: 1;
+  justify-content: center;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+@media (max-width: 1080px) {
+  .studio-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .studio-canvas {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+}
+
+@media (max-width: 700px) {
+  .studio-grid {
+    grid-template-columns: 1fr;
+  }
+  .studio-canvas {
+    grid-column: auto;
+    order: 0;
+  }
+}
 }
