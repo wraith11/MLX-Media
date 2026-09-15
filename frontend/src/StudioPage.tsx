@@ -67,6 +67,8 @@ interface StudioPageProps {
   library: StoredImage[];
   onAddImage: (img: StoredImage) => void;
   onDeleteImage: (id: string) => void;
+  onDeleteDay: (dayKey: string) => void;
+  onToggleFavorite: (id: string) => void;
   notify: (msg: string) => void;
 }
 
@@ -75,6 +77,8 @@ export default function StudioPage({
   library,
   onAddImage,
   onDeleteImage,
+  onDeleteDay,
+  onToggleFavorite,
   notify,
 }: StudioPageProps) {
   // ── Generate state ──────────────────────────────────────────────
