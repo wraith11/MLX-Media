@@ -30,7 +30,13 @@ minimal frontend** that actually talks to the local MLX backend:
   gespeichert).
 - **Einstellungen** — Systemstatus, aktives Modell wählen, Modelle herunterladen
   und von der Platte löschen, MLX-VLM für Text-Masken bereitstellen, plus
-  **Aufbewahrung** (automatisches Löschen nach x Tagen, Standard 0 = aus).
+  **Aufbewahrung** (automatisches Löschen nach x Tagen, Standard 0 = aus) und
+  **Modell-Cache &amp; Speicher**.
+- **Modell-Cache** — Modelle werden lazy geladen. Optional im Speicher gehalten
+  (beschleunigt wiederholte Generierungen), mit **Entlade-Timeout** (Minuten,
+  0 = „Keep loaded“) und **RAM-Prüfung** vor dem Laden: reicht der freie
+  Unified-Memory nicht, wird zuerst entladen, sonst abgelehnt. Manuelles „Jetzt
+  entladen“ ist in den Einstellungen verfügbar.
 - **Favoriten** schützen ein Bild vor manuellem Löschen, „Tag löschen“ und automatischem
   Löschen — ein Bild wird nur entfernt, wenn es nicht als Favorit markiert ist.
 - Start-/Home-Tab, Time Lens und die getrennten Tabs „Erzeugen/Bearbeiten/Galerie“
