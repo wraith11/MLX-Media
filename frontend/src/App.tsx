@@ -578,6 +578,69 @@ function SettingsPage({
       </section>
 
       <section className="panel">
+        <div className="section-title">Modell-Cache &amp; Speicher</div>
+        <p className="muted">
+          Modelle werden lazy geladen und optional im Speicher gehalten, um wiederholte
+          Generierungen zu beschleunigen. Vor dem Laden prüft das Backend den freien
+          Unified-Memory und entlädt bei Bedarf.
+        </p>
+        <div className="info-row">
+          <span>Modell-Cache aktivieren</span>
+          <strong>
+            <input
+              type="checkbox"
+              checked={!!cache?.enabled}
+              disabled={cacheBusy}
+              onChange={(e) => updateCache(e.target.checked, cache?.timeout_minutes ?? 10)}
+            />
+          </strong>
+        </div>
+        <div className="info-row">
+          <span>Entlade-Timeout (Minuten)</span>
+          <strong>
+            <input
+              type="number"
+              min={0}
+              value={cache?.timeout_minutes ?? 0}
+              disabled={cacheBusy || !cache?.enabled}
+              onChange={(e) => {
+                const v = Math.max(0, Number(e.target.value) || 0);
+                updateCache(true, v);
+              }}
+              style={{ width: 80 }}
+            />
+          </strong>
+        </div>
+        {cache?.keep_loaded && <p className="muted">0 = Modelle dauerhaft geladen lassen (Keep loaded).</p>}
+        <div className="info-row">
+          <span>Freier Speicher</span>
+          <strong style={{ color: cache?.memory.enough_for_new_model ? "var(--text)" : "var(--danger)" }}>
+            {cache?.memory.free_gb != null ? `${cache.memory.free_gb} GB` : "—"}
+            {cache?.memory.enough_for_new_model ? "" : " · zu wenig für ein neues Modell"}
+          </strong>
+        </div>
+        <div className="info-row">
+          <span>Gecachte Modelle</span>
+          <strong>{(cache?.cached_models ?? []).length}</strong>
+        </div>
+        {(cache?.cached_models ?? []).length > 0 && (
+          <div className="model-list">
+            {cache?.cached_models.map((m) => (
+              <div className="info-row" key={m.key}>
+                <span>{m.model}</span>
+                <em>inaktiv {m.idle_minutes} min</em>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="row-actions">
+          <button className="btn" onClick={flushCache} disabled={cacheBusy}>
+            {cacheBusy ? <Spinner /> : null} Jetzt entladen
+          </button>
+        </div>
+      </section>
+
+      <section className="panel">
         <div className="section-title">Modell wählen &amp; verwalten</div>
         <p className="muted">
           Das aktive Modell wird für „Bilder erzeugen“ verwendet. Nicht heruntergeladene
