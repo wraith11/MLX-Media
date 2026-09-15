@@ -518,6 +518,9 @@ function SettingsPage({
               {Math.round(system.memory.active_mb)} MB aktiv / {Math.round(system.memory.peak_mb)} MB peak
             </strong>
           </div>
+        )}
+      </section>
+
       <section className="panel">
         <div className="section-title">Aufbewahrung</div>
         <div className="info-row">
@@ -538,8 +541,6 @@ function SettingsPage({
           0 = aus. Bilder, die älter als die angegebene Anzahl Tage sind, werden beim Laden
           automatisch entfernt. Favoriten (★) sind davon ausgenommen.
         </p>
-      </section>
-        )}
       </section>
 
       <section className="panel">
