@@ -872,9 +872,13 @@ def generate_image_gradio(
         return [], f"Generation error: {str(e)}", prompt
     
     finally:
-        # Final cleanup
-        gc.collect()
-        force_mlx_cleanup()
+        # Final cleanup. When the model cache is enabled we keep the model in
+        # memory for reuse, so we skip the hard MLX cache purge. Otherwise we
+        # release everything as before.
+        from backend import model_cache
+        if not model_cache.is_enabled():
+            gc.collect()
+            force_mlx_cleanup()
         print_memory_usage("After generation")
 
 def generate_image_controlnet_gradio(
