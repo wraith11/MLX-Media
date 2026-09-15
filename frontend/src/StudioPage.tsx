@@ -201,8 +201,10 @@ export default function StudioPage({
           const res = await maskFromText(current, editText.trim());
           effectiveMask = base64ToDataUrl(res.mask);
           setMask(effectiveMask);
+          setMaskSource("auto");
         } catch {
           // Fall through: continue without mask (whole image).
+          setMaskSource(null);
         }
       }
       const submitted = await submitGenerate({
@@ -210,7 +212,7 @@ export default function StudioPage({
         prompt: editText.trim(),
         init_images: [dataUrlToBase64(current)],
         mask: effectiveMask ? dataUrlToBase64(effectiveMask) : undefined,
-        guidance: 30,
+        ...(guidance !== "" ? { guidance } : {}),
       });
       editPollRef.current = window.setInterval(async () => {
         let job: Job;
