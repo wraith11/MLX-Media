@@ -143,15 +143,6 @@ function ProgressBar({ percent }: { percent: number }) {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="field">
-      <span>{label}</span>
-      {children}
-    </label>
-  );
-}
-
 function Spinner() {
   return <LoaderCircle className="spin" size={18} />;
 }
