@@ -743,13 +743,21 @@ export default function App() {
             library={library}
             onAddImage={onGenerated}
             onDeleteImage={onDelete}
+            onDeleteDay={onDeleteDay}
+            onToggleFavorite={toggleFavorite}
             notify={notify}
           />
         );
       case "video":
         return <VideoPage notify={notify} />;
       case "settings":
-        return <SettingsPage notify={notify} />;
+        return (
+          <SettingsPage
+            notify={notify}
+            settings={settings}
+            onSettingsChange={updateSettings}
+          />
+        );
     }
   };
 
