@@ -671,25 +671,13 @@ export default function App() {
 
   const renderPage = () => {
     switch (page) {
-      case "create":
-        return <CreatePage onGenerated={onGenerated} notify={notify} />;
-      case "edit":
+      case "studio":
         return (
-          <EditPage
-            library={library}
-            initialImage={editTarget?.dataUrl ?? null}
-            initialPrompt={editTarget?.prompt ?? ""}
-            onGenerated={onGenerated}
-            notify={notify}
-          />
-        );
-      case "library":
-        return (
-          <LibraryPage
+          <StudioPage
             user={activeUser}
             library={library}
-            onDelete={onDelete}
-            onEdit={goEdit}
+            onAddImage={onGenerated}
+            onDeleteImage={onDelete}
             notify={notify}
           />
         );
