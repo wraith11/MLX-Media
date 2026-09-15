@@ -410,25 +410,55 @@ function SettingsPage({
   const [active, setActive] = useState<string>("");
   const [system, setSystem] = useState<SystemInfo | null>(null);
   const [vlm, setVlm] = useState<VlmStatus | null>(null);
+  const [cache, setCache] = useState<CacheStatus | null>(null);
+  const [cacheBusy, setCacheBusy] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refresh = async () => {
     setLoading(true);
     try {
-      const [modelRes, sysRes, vlmRes] = await Promise.all([
+      const [modelRes, sysRes, vlmRes, cacheRes] = await Promise.all([
         fetchModels(),
         fetchSystem(),
         fetchVlmStatus(),
+        fetchCacheStatus(),
       ]);
       setModels(modelRes.models ?? []);
       setActive(modelRes.active ?? sysRes.active_model ?? "");
       setSystem(sysRes);
       setVlm(vlmRes);
+      setCache(cacheRes);
     } catch (err) {
       notify(err instanceof Error ? err.message : "Backend nicht erreichbar.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateCache = async (enabled: boolean, timeout: number) => {
+    setCacheBusy(true);
+    try {
+      const res = await setCacheConfig(enabled, timeout);
+      setCache(res);
+      notify(enabled ? "Modell-Cache aktiviert." : "Modell-Cache deaktiviert.");
+    } catch (err) {
+      notify(err instanceof Error ? err.message : "Cache-Einstellung fehlgeschlagen.");
+    } finally {
+      setCacheBusy(false);
+    }
+  };
+
+  const flushCache = async () => {
+    setCacheBusy(true);
+    try {
+      const res = await unloadCache();
+      setCache(res);
+      notify("Alle gecachten Modelle entladen.");
+    } catch (err) {
+      notify(err instanceof Error ? err.message : "Entladen fehlgeschlagen.");
+    } finally {
+      setCacheBusy(false);
     }
   };
 
