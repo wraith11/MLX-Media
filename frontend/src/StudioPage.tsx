@@ -276,6 +276,12 @@ export default function StudioPage({
     e.target.value = "";
   };
 
+  /** User painted a mask manually -> mark it as manual so the UI/prompting is explicit. */
+  const manualMaskChange = (m: string) => {
+    setMask(m);
+    setMaskSource("manual");
+  };
+
   const gallery = library.slice().reverse();
 
   return (
