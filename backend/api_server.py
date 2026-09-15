@@ -370,6 +370,10 @@ class APIServer(BaseHTTPRequestHandler):
             return self.handle_options_update()
         if path == "/api/v1/generate":
             return self.handle_generate()
+        if path == "/api/v1/cache/config":
+            return self.handle_cache_config()
+        if path == "/api/v1/cache/unload":
+            return self.handle_cache_unload()
         if path == "/api/v1/mask-from-text":
             return self.handle_mask_from_text()
         if path == "/api/v1/vlm/download":
