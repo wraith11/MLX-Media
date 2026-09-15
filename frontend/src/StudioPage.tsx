@@ -91,7 +91,6 @@ export default function StudioPage({
   const [current, setCurrent] = useState<string | null>(null);
   const [currentPrompt, setCurrentPrompt] = useState("");
   const [mask, setMask] = useState<string | null>(null);
-  const [showMask, setShowMask] = useState(true);
 
   // ── Edit state ──────────────────────────────────────────────────
   const [editText, setEditText] = useState("");
