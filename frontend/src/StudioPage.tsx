@@ -63,7 +63,6 @@ function Spinner() {
 }
 
 interface StudioPageProps {
-  user: string;
   library: StoredImage[];
   onAddImage: (img: StoredImage) => void;
   onDeleteImage: (id: string) => void;
@@ -73,7 +72,6 @@ interface StudioPageProps {
 }
 
 export default function StudioPage({
-  user,
   library,
   onAddImage,
   onDeleteImage,
