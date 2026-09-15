@@ -619,10 +619,18 @@ export default function App() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [newUserName, setNewUserName] = useState("");
   const [notice, setNotice] = useState("");
+  const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
 
-  // Keep library in sync with the active user.
+  // Keep library in sync with the active user, applying auto-delete.
   useEffect(() => {
-    setLibrary(loadLibrary(activeUser));
+    let items = loadLibrary(activeUser);
+    if (settings.autoDeleteDays > 0) {
+      const cutoff = Date.now() - settings.autoDeleteDays * 24 * 3600 * 1000;
+      items = items.filter((im) => im.favorite || im.createdAt >= cutoff);
+      saveLibrary(activeUser, items);
+    }
+    setLibrary(items);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeUser]);
 
   useEffect(() => {
