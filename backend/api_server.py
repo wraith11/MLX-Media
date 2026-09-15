@@ -974,6 +974,43 @@ class APIServer(BaseHTTPRequestHandler):
         if not (0.0 <= x1 <= 1.0 and 0.0 <= y1 <= 1.0) or not (0.0 <= x2 <= 1.0 and 0.0 <= y2 <= 1.0):
             return None
         return (min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2))
+    def handle_cache_status(self):
+        """GET /api/v1/cache/status - cache config + RAM status."""
+        from backend import model_cache
+        return _json_response(self, {
+            **model_cache.get_config(),
+            "memory": model_cache.memory_status(),
+        })
+
+    def handle_cache_config(self):
+        """POST /api/v1/cache/config - set enabled + timeout_minutes."""
+        from backend import model_cache
+
+        try:
+            data = self._read_json()
+        except Exception:
+            data = {}
+        try:
+            cfg = model_cache.set_config(
+                enabled=data.get("enabled"),
+                timeout_minutes=data.get("timeout_minutes"),
+            )
+        except Exception as exc:  # noqa: BLE001
+            return _bad_request(self, f"Cache config failed: {exc}", status=500)
+        return _json_response(self, {
+            **cfg,
+            "memory": model_cache.memory_status(),
+        })
+
+    def handle_cache_unload(self):
+        """POST /api/v1/cache/unload - immediately unload all cached models."""
+        from backend import model_cache
+        return _json_response(self, {
+            **model_cache.unload_all(),
+            "memory": model_cache.memory_status(),
+        })
+
+    def handle_vlm_status(self):
     def handle_vlm_status(self):
         """GET /api/v1/vlm/status - which (if any) MLX VLM is installed."""
         from backend import mlx_vlm_manager as vlm
