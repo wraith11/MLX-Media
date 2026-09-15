@@ -852,7 +852,6 @@ export default function App() {
       case "studio":
         return (
           <StudioPage
-            user={activeUser}
             library={library}
             onAddImage={onGenerated}
             onDeleteImage={onDelete}
