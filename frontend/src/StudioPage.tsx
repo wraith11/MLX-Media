@@ -321,12 +321,6 @@ export default function StudioPage({
         <section className="panel studio-col studio-canvas">
           <div className="studio-canvas-head">
             <div className="section-title">Aktuelles Bild</div>
-            {current && (
-              <label className="mask-toggle">
-                <input type="checkbox" checked={showMask} onChange={(e) => setShowMask(e.target.checked)} />
-                <span>Maske anzeigen</span>
-              </label>
-            )}
           </div>
 
           {!current ? (
@@ -341,11 +335,7 @@ export default function StudioPage({
                 <MaskEditor image={current} onChange={setMask} />
               </div>
               <div className="preview-image studio-preview">
-                {showMask ? (
-                  <img src={current} alt="Aktuelles Bild" />
-                ) : (
-                  <img src={current} alt="Aktuelles Bild" />
-                )}
+                <img src={current} alt="Aktuelles Bild" />
               </div>
               {currentPrompt && <div className="result-caption">{currentPrompt}</div>}
             </>
