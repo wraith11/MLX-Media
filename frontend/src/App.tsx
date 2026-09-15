@@ -56,6 +56,30 @@ import StudioPage from "./StudioPage";
 const USERS_KEY = "mlx-media:users";
 const ACTIVE_USER_KEY = "mlx-media:active-user";
 const LIBRARY_PREFIX = "mlx-media:lib:";
+const SETTINGS_KEY = "mlx-media:settings";
+
+interface AppSettings {
+  autoDeleteDays: number; // 0 = off
+}
+
+function loadSettings(): AppSettings {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (!raw) return { autoDeleteDays: 0 };
+    const parsed = JSON.parse(raw);
+    return { autoDeleteDays: Number(parsed?.autoDeleteDays) || 0 };
+  } catch {
+    return { autoDeleteDays: 0 };
+  }
+}
+
+function saveSettings(s: AppSettings) {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+  } catch {
+    /* ignore */
+  }
+}
 
 function loadUsers(): string[] {
   try {
