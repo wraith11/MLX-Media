@@ -437,6 +437,29 @@ export default function StudioPage({
               </button>
             )}
           </div>
+          <button
+            type="button"
+            className="btn advanced-toggle"
+            onClick={() => setShowEditAdvanced((v) => !v)}
+          >
+            Erweiterte Einstellungen (Bearbeiten) {showEditAdvanced ? "▲" : "▼"}
+          </button>
+          {showEditAdvanced && (
+            <div className="advanced-box">
+              <div className="grid-2">
+                <Field label="Schritte (leer = Standard)">
+                  <input type="number" value={editSteps} onChange={(e) => setEditSteps(e.target.value === "" ? "" : Number(e.target.value))} min={1} max={50} placeholder="Standard" />
+                </Field>
+                <Field label={`Guidance: ${editGuidance === "" ? "Standard" : editGuidance}`}>
+                  <input type="number" value={editGuidance} onChange={(e) => setEditGuidance(e.target.value === "" ? "" : Number(e.target.value))} min={0} step={0.5} />
+                </Field>
+              </div>
+              <p className="mask-hint">
+                Höhere Guidance = die Änderung folgt deiner Beschreibung stärker und verändert
+                den maskierten Bereich deutlicher. Niedrigere Werte bleiben näher am Original.
+              </p>
+            </div>
+          )}
           {editBusy && (
             <div className="progress-line">
               <ProgressBar percent={editProgress} />
