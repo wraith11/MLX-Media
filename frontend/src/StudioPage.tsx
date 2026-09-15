@@ -353,8 +353,12 @@ export default function StudioPage({
           ) : (
             <>
               <div className="studio-mask-tools">
-                <span className="muted">Maske:</span>
-                <MaskEditor image={current} onChange={setMask} />
+                <div className="studio-mask-head">
+                  <span className="muted">Maske zeichnen:</span>
+                  {maskSource === "manual" && <span className="mask-badge mask-badge-manual">Manuell</span>}
+                  {maskSource === "auto" && <span className="mask-badge mask-badge-auto">Vom System</span>}
+                </div>
+                <MaskEditor image={current} onChange={manualMaskChange} />
               </div>
               <div className="preview-image studio-preview">
                 <img src={current} alt="Aktuelles Bild" />
