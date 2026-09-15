@@ -67,6 +67,13 @@ export interface ModelsResult {
   active: string;
 }
 
+export interface StoredImage {
+  id: string;
+  dataUrl: string;
+  prompt: string;
+  createdAt: number;
+}
+
 export interface SystemInfo {
   active_model: string;
   queue_depth: number;
