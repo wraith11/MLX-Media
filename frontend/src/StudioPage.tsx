@@ -335,22 +335,22 @@ export default function StudioPage({
           <button
             type="button"
             className="btn advanced-toggle"
-            onClick={() => setShowAdvanced((v) => !v)}
+            onClick={() => setShowGenAdvanced((v) => !v)}
           >
-            Erweiterte Einstellungen {showAdvanced ? "▲" : "▼"}
+            Erweiterte Einstellungen (Generieren) {showGenAdvanced ? "▲" : "▼"}
           </button>
-          {showAdvanced && (
+          {showGenAdvanced && (
             <div className="advanced-box">
               <div className="grid-2">
                 <Field label="Schritte (leer = Standard)">
-                  <input type="number" value={steps} onChange={(e) => setSteps(e.target.value === "" ? "" : Number(e.target.value))} min={1} max={50} />
+                  <input type="number" value={genSteps} onChange={(e) => setGenSteps(e.target.value === "" ? "" : Number(e.target.value))} min={1} max={50} placeholder="Standard" />
                 </Field>
                 <Field label="Seed (leer = zufällig)">
-                  <input type="number" value={seed} onChange={(e) => setSeed(e.target.value === "" ? "" : Number(e.target.value))} min={0} />
+                  <input type="number" value={genSeed} onChange={(e) => setGenSeed(e.target.value === "" ? "" : Number(e.target.value))} min={0} placeholder="Zufällig" />
                 </Field>
               </div>
-              <Field label="Guidance (leer = Standard)">
-                <input type="number" value={guidance} onChange={(e) => setGuidance(e.target.value === "" ? "" : Number(e.target.value))} min={0} step={0.5} />
+              <Field label={`Guidance: ${genGuidance === "" ? "Standard" : genGuidance}`}>
+                <input type="number" value={genGuidance} onChange={(e) => setGenGuidance(e.target.value === "" ? "" : Number(e.target.value))} min={0} step={0.5} />
               </Field>
             </div>
           )}
