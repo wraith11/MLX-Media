@@ -50,12 +50,14 @@ import {
   submitVideo,
   type Job,
   type ModelInfo,
+  type StoredImage,
   type SystemInfo,
   type VideoSetupStatus,
   type VideoStatus,
   type VlmStatus,
 } from "./mediaApi";
 import MaskEditor from "./MaskEditor";
+import StudioPage from "./StudioPage";
 
 /* ── Per-user persistence ────────────────────────────────────────── */
 
