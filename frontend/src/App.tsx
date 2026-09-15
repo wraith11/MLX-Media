@@ -84,13 +84,6 @@ function saveUsers(users: string[]) {
   }
 }
 
-interface StoredImage {
-  id: string;
-  dataUrl: string;
-  prompt: string;
-  createdAt: number;
-}
-
 function loadLibrary(user: string): StoredImage[] {
   try {
     const raw = localStorage.getItem(LIBRARY_PREFIX + user);
