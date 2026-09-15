@@ -91,6 +91,14 @@ export default function StudioPage({
   const [current, setCurrent] = useState<string | null>(null);
   const [currentPrompt, setCurrentPrompt] = useState("");
   const [mask, setMask] = useState<string | null>(null);
+  // "manual" = user drew the mask; "auto" = system located the object via text.
+  const [maskSource, setMaskSource] = useState<"manual" | "auto" | null>(null);
+
+  // ── Generate advanced settings ──────────────────────────────────
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [steps, setSteps] = useState<number | "">("");
+  const [seed, setSeed] = useState<number | "">("");
+  const [guidance, setGuidance] = useState<number | "">(3.5);
 
   // ── Edit state ──────────────────────────────────────────────────
   const [editText, setEditText] = useState("");
