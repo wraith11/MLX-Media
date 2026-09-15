@@ -1,0 +1,434 @@
+/**
+ * StudioPage.tsx
+ *
+ * Unified "Studio" workspace that merges generation, inpainting and the gallery
+ * into one productive surface:
+ *
+ *   - LEFT   : generate a new image (prompt + size/count settings).
+ *   - CENTER : the current image with masking tools (brush/lasso/eraser) on top.
+ *   - RIGHT  : edit description. If a mask is set it is applied together with the
+ *              text; if no mask is set, the backend locates the described object
+ *              automatically (e.g. "den Hut durch eine Mütze ersetzen").
+ *   - BELOW  : the gallery. Clicking an image loads it into the workspace.
+ */
+import { useEffect, useRef, useState } from "react";
+import {
+  Download,
+  ImagePlus,
+  Play,
+  Sparkles,
+  Trash2,
+  Upload,
+  Wand2,
+} from "lucide-react";
+import MaskEditor from "./MaskEditor";
+import {
+  base64ToDataUrl,
+  dataUrlToBase64,
+  fetchJob,
+  isTerminal,
+  maskFromText,
+  submitGenerate,
+  type Job,
+  type StoredImage,
+} from "./mediaApi";
+
+function ProgressBar({ percent }: { percent: number }) {
+  return (
+    <div className="bar">
+      <span style={{ width: `${Math.min(100, Math.max(0, percent))}%` }} />
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="field">
+      <span>{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function Spinner() {
+  return (
+    <span className="spin" style={{ display: "inline-flex" }}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <circle cx="12" cy="12" r="10" opacity="0.25" />
+        <path d="M12 2a10 10 0 0 1 10 10" />
+      </svg>
+    </span>
+  );
+}
+
+interface StudioPageProps {
+  user: string;
+  library: StoredImage[];
+  onAddImage: (img: StoredImage) => void;
+  onDeleteImage: (id: string) => void;
+  notify: (msg: string) => void;
+}
+
+export default function StudioPage({
+  user,
+  library,
+  onAddImage,
+  onDeleteImage,
+  notify,
+}: StudioPageProps) {
+  // ── Generate state ──────────────────────────────────────────────
+  const [genPrompt, setGenPrompt] = useState("");
+  const [width, setWidth] = useState(1024);
+  const [height, setHeight] = useState(1024);
+  const [numImages, setNumImages] = useState(1);
+  const [genRunning, setGenRunning] = useState(false);
+  const [genProgress, setGenProgress] = useState(0);
+  const [genStage, setGenStage] = useState("");
+  const genPollRef = useRef<number | null>(null);
+
+  // ── Workspace (current image) state ─────────────────────────────
+  const [current, setCurrent] = useState<string | null>(null);
+  const [currentPrompt, setCurrentPrompt] = useState("");
+  const [mask, setMask] = useState<string | null>(null);
+  const [showMask, setShowMask] = useState(true);
+
+  // ── Edit state ──────────────────────────────────────────────────
+  const [editText, setEditText] = useState("");
+  const [editBusy, setEditBusy] = useState(false);
+  const [editProgress, setEditProgress] = useState(0);
+  const [editStage, setEditStage] = useState("");
+  const editPollRef = useRef<number | null>(null);
+
+  // Clear pollers on unmount.
+  useEffect(() => {
+    return () => {
+      if (genPollRef.current !== null) window.clearInterval(genPollRef.current);
+      if (editPollRef.current !== null) window.clearInterval(editPollRef.current);
+    };
+  }, []);
+
+  const clearGenPoll = () => {
+    if (genPollRef.current !== null) {
+      window.clearInterval(genPollRef.current);
+      genPollRef.current = null;
+    }
+  };
+  const clearEditPoll = () => {
+    if (editPollRef.current !== null) {
+      window.clearInterval(editPollRef.current);
+      editPollRef.current = null;
+    }
+  };
+
+  /** Generate a brand new image and load it into the workspace. */
+  const startGenerate = async () => {
+    if (!genPrompt.trim() || genRunning) return;
+    setGenRunning(true);
+    setGenProgress(0);
+    setGenStage("eingereiht…");
+    try {
+      const submitted = await submitGenerate({
+        type: "txt2img",
+        prompt: genPrompt.trim(),
+        width,
+        height,
+        num_images: numImages,
+        guidance: 3.5,
+      });
+      genPollRef.current = window.setInterval(async () => {
+        let job: Job;
+        try {
+          job = await fetchJob(submitted.job_id);
+        } catch {
+          return;
+        }
+        setGenProgress(job.progress?.percent ?? 0);
+        setGenStage(job.progress?.stage || job.status);
+        if (isTerminal(job.status)) {
+          clearGenPoll();
+          setGenRunning(false);
+          if (job.status === "completed" && job.result?.images?.length) {
+            const out = base64ToDataUrl(job.result.images[0]);
+            setCurrent(out);
+            setCurrentPrompt(genPrompt.trim());
+            setMask(null);
+            onAddImage({
+              id: `img-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+              dataUrl: out,
+              prompt: genPrompt.trim(),
+              createdAt: Date.now(),
+            });
+            notify("Bild erzeugt.");
+          } else {
+            setGenStage(job.error?.message || "Fehlgeschlagen");
+            notify(job.error?.message || "Generierung fehlgeschlagen.");
+          }
+        }
+      }, 1000);
+    } catch (err) {
+      setGenRunning(false);
+      setGenStage(err instanceof Error ? err.message : "Fehler");
+      notify(err instanceof Error ? err.message : "Fehler");
+    }
+  };
+
+  /** Apply an edit: manual mask + text, or auto-mask from text when none set. */
+  const applyEdit = async () => {
+    if (!current || editBusy) return;
+    if (!editText.trim()) {
+      notify("Bitte beschreibe die Änderung.");
+      return;
+    }
+    setEditBusy(true);
+    setEditProgress(0);
+    setEditStage("eingereiht…");
+    try {
+      let effectiveMask = mask;
+      if (!effectiveMask) {
+        setEditStage("Suche Objekt…");
+        try {
+          const res = await maskFromText(current, editText.trim());
+          effectiveMask = base64ToDataUrl(res.mask);
+          setMask(effectiveMask);
+        } catch {
+          // Fall through: continue without mask (whole image).
+        }
+      }
+      const submitted = await submitGenerate({
+        type: "inpaint",
+        prompt: editText.trim(),
+        init_images: [dataUrlToBase64(current)],
+        mask: effectiveMask ? dataUrlToBase64(effectiveMask) : undefined,
+        guidance: 30,
+      });
+      editPollRef.current = window.setInterval(async () => {
+        let job: Job;
+        try {
+          job = await fetchJob(submitted.job_id);
+        } catch {
+          return;
+        }
+        setEditProgress(job.progress?.percent ?? 0);
+        setEditStage(job.progress?.stage || job.status);
+        if (isTerminal(job.status)) {
+          clearEditPoll();
+          setEditBusy(false);
+          if (job.status === "completed" && job.result?.images?.length) {
+            const out = base64ToDataUrl(job.result.images[0]);
+            setCurrent(out);
+            setCurrentPrompt(editText.trim());
+            setMask(null);
+            onAddImage({
+              id: `img-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+              dataUrl: out,
+              prompt: editText.trim(),
+              createdAt: Date.now(),
+            });
+            notify("Bearbeitung fertig.");
+          } else {
+            setEditStage(job.error?.message || "Fehlgeschlagen");
+            notify(job.error?.message || "Bearbeitung fehlgeschlagen.");
+          }
+        }
+      }, 1200);
+    } catch (err) {
+      setEditBusy(false);
+      setEditStage(err instanceof Error ? err.message : "Fehler");
+      notify(err instanceof Error ? err.message : "Fehler");
+    }
+  };
+
+  /** Load an image from the gallery into the workspace. */
+  const loadFromGallery = (item: StoredImage) => {
+    setCurrent(item.dataUrl);
+    setCurrentPrompt(item.prompt);
+    setMask(null);
+    setEditText("");
+  };
+
+  const onUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCurrent(String(reader.result));
+      setCurrentPrompt("");
+      setMask(null);
+      setEditText("");
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const gallery = library.slice().reverse();
+
+  return (
+    <div className="page studio">
+      <header className="page-head">
+        <div>
+          <span className="eyebrow">Studio</span>
+          <h1>Bilder &amp; Bearbeitung</h1>
+          <p>
+            Neu generieren (links), Bereich markieren &amp; ändern (Mitte), Änderung
+            beschreiben (rechts). Ohne Maske findet das System das Objekt automatisch.
+          </p>
+        </div>
+      </header>
+
+      <div className="studio-grid">
+        {/* LEFT: generate */}
+        <section className="panel studio-col studio-generate">
+          <div className="section-title">Neu generieren</div>
+          <div className="field">
+            <span>Beschreibung</span>
+            <textarea
+              rows={6}
+              value={genPrompt}
+              onChange={(e) => setGenPrompt(e.target.value)}
+              placeholder="z.B. Eine Katze auf einem Berggipfel, goldenes Licht…"
+            />
+          </div>
+          <div className="grid-2">
+            <Field label="Breite">
+              <input type="number" value={width} onChange={(e) => setWidth(Number(e.target.value))} min={256} max={2048} step={128} />
+            </Field>
+            <Field label="Höhe">
+              <input type="number" value={height} onChange={(e) => setHeight(Number(e.target.value))} min={256} max={2048} step={128} />
+            </Field>
+          </div>
+          <Field label="Anzahl">
+            <input type="number" value={numImages} onChange={(e) => setNumImages(Math.max(1, Math.min(4, Number(e.target.value))))} min={1} max={4} />
+          </Field>
+          <div className="row-actions">
+            <button className="btn btn-primary" onClick={startGenerate} disabled={genRunning || !genPrompt.trim()}>
+              {genRunning ? <Spinner /> : <Play size={16} />} {genRunning ? "Generiere…" : "Generieren"}
+            </button>
+          </div>
+          {genRunning && (
+            <div className="progress-line">
+              <ProgressBar percent={genProgress} />
+              <span>{genStage}</span>
+            </div>
+          )}
+          <label className="upload-tile">
+            <Upload size={16} />
+            <span>Bild hochladen</span>
+            <input type="file" accept="image/*" onChange={onUpload} />
+          </label>
+        </section>
+
+        {/* CENTER: current image + mask tools */}
+        <section className="panel studio-col studio-canvas">
+          <div className="studio-canvas-head">
+            <div className="section-title">Aktuelles Bild</div>
+            {current && (
+              <label className="mask-toggle">
+                <input type="checkbox" checked={showMask} onChange={(e) => setShowMask(e.target.checked)} />
+                <span>Maske anzeigen</span>
+              </label>
+            )}
+          </div>
+
+          {!current ? (
+            <div className="empty-state" style={{ padding: 48 }}>
+              <ImagePlus size={30} />
+              <p>Generiere ein Bild oder wähle eines aus der Galerie.</p>
+            </div>
+          ) : (
+            <>
+              <div className="studio-mask-tools">
+                <span className="muted">Maske:</span>
+                <MaskEditor image={current} onChange={setMask} />
+              </div>
+              <div className="preview-image studio-preview">
+                {showMask ? (
+                  <img src={current} alt="Aktuelles Bild" />
+                ) : (
+                  <img src={current} alt="Aktuelles Bild" />
+                )}
+              </div>
+              {currentPrompt && <div className="result-caption">{currentPrompt}</div>}
+            </>
+          )}
+        </section>
+
+        {/* RIGHT: edit */}
+        <section className="panel studio-col studio-edit">
+          <div className="section-title">Ändern</div>
+          <div className="field">
+            <span>Was soll geändert werden?</span>
+            <textarea
+              rows={6}
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              placeholder={
+                mask
+                  ? "z.B. eine Mütze, ein blauer Himmel…"
+                  : "z.B. den Hut durch eine Mütze ersetzen, das Auto rot machen…"
+              }
+            />
+          </div>
+          <p className="mask-hint">
+            {mask
+              ? "Eine Maske ist gesetzt — nur der markierte Bereich wird neu gezeichnet."
+              : "Keine Maske — das System findet das beschriebene Objekt automatisch und ändert es."}
+          </p>
+          <div className="row-actions">
+            <button
+              className="btn btn-primary"
+              onClick={applyEdit}
+              disabled={editBusy || !current || !editText.trim()}
+            >
+              {editBusy ? <Spinner /> : <Wand2 size={16} />}
+              {editBusy ? "Bearbeite…" : "Anwenden"}
+            </button>
+            {mask && (
+              <button className="btn" onClick={() => setMask(null)}>
+                Maske löschen
+              </button>
+            )}
+          </div>
+          {editBusy && (
+            <div className="progress-line">
+              <ProgressBar percent={editProgress} />
+              <span>{editStage}</span>
+            </div>
+          )}
+        </section>
+      </div>
+
+      {/* BELOW: gallery */}
+      <section className="panel">
+        <div className="section-title">Galerie · {gallery.length} Bild(er)</div>
+        {gallery.length === 0 ? (
+          <p className="muted">Noch keine Bilder.</p>
+        ) : (
+          <div className="studio-gallery">
+            {gallery.map((item) => (
+              <div className="result-card" key={item.id}>
+                <button className="gallery-img-btn" onClick={() => loadFromGallery(item)} title="In den Arbeitsbereich laden">
+                  <img src={item.dataUrl} alt={item.prompt} />
+                </button>
+                <div className="result-actions">
+                  <button className="btn" onClick={() => loadFromGallery(item)}>
+                    <Sparkles size={14} /> Laden
+                  </button>
+                  <a className="btn" href={item.dataUrl} download={`bild-${item.id}.png`} title="Speichern">
+                    <Download size={14} />
+                  </a>
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => onDeleteImage(item.id)}
+                    title="Löschen"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
