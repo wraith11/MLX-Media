@@ -984,13 +984,105 @@ body {
 
 .studio-gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 10px;
+}
+
+.studio-gallery .result-card {
+  position: relative;
 }
 
 .studio-gallery .result-card img {
   aspect-ratio: 1;
   object-fit: cover;
+  border-radius: 8px;
+}
+
+.studio-gallery .result-card.is-fav {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 1px;
+}
+
+.studio-gallery .result-actions {
+  gap: 6px;
+  padding: 8px;
+}
+
+.studio-gallery .result-actions .btn {
+  flex: 1;
+  justify-content: center;
+  padding: 6px 4px;
+  font-size: 12px;
+}
+
+.gallery-star {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 5;
+}
+
+.star-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: rgba(10, 12, 20, 0.7);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.star-btn.is-active {
+  color: #ffd24a;
+  border-color: #ffd24a;
+  background: rgba(255, 210, 74, 0.15);
+}
+
+/* ── Gallery grouped by day ─────────────────────────────────────── */
+
+.gallery-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.studio-day-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.studio-day {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.studio-day-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+
+.studio-day-label {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.studio-day-head .btn {
+  padding: 4px 8px;
+  font-size: 12px;
 }
 
 .studio-gallery .result-actions .btn {
