@@ -321,6 +321,28 @@ export default function StudioPage({
           <Field label="Anzahl">
             <input type="number" value={numImages} onChange={(e) => setNumImages(Math.max(1, Math.min(4, Number(e.target.value))))} min={1} max={4} />
           </Field>
+          <button
+            type="button"
+            className="btn advanced-toggle"
+            onClick={() => setShowAdvanced((v) => !v)}
+          >
+            Erweiterte Einstellungen {showAdvanced ? "▲" : "▼"}
+          </button>
+          {showAdvanced && (
+            <div className="advanced-box">
+              <div className="grid-2">
+                <Field label="Schritte (leer = Standard)">
+                  <input type="number" value={steps} onChange={(e) => setSteps(e.target.value === "" ? "" : Number(e.target.value))} min={1} max={50} />
+                </Field>
+                <Field label="Seed (leer = zufällig)">
+                  <input type="number" value={seed} onChange={(e) => setSeed(e.target.value === "" ? "" : Number(e.target.value))} min={0} />
+                </Field>
+              </div>
+              <Field label="Guidance (leer = Standard)">
+                <input type="number" value={guidance} onChange={(e) => setGuidance(e.target.value === "" ? "" : Number(e.target.value))} min={0} step={0.5} />
+              </Field>
+            </div>
+          )}
           <div className="row-actions">
             <button className="btn btn-primary" onClick={startGenerate} disabled={genRunning || !genPrompt.trim()}>
               {genRunning ? <Spinner /> : <Play size={16} />} {genRunning ? "Generiere…" : "Generieren"}
