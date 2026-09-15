@@ -141,7 +141,9 @@ export default function StudioPage({
         width,
         height,
         num_images: numImages,
-        guidance: 3.5,
+        ...(steps !== "" ? { steps } : {}),
+        ...(seed !== "" ? { seed } : {}),
+        ...(guidance !== "" ? { guidance } : {}),
       });
       genPollRef.current = window.setInterval(async () => {
         let job: Job;
