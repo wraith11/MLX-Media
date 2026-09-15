@@ -17,17 +17,14 @@ import { useEffect, useRef, useState } from "react";
 import {
   Download,
   ImagePlus,
-  Images,
   LoaderCircle,
   Play,
   Plus,
   Settings,
   Sparkles,
   Trash2,
-  Upload,
   User,
   Users,
-  Wand2,
   X,
 } from "lucide-react";
 import {
