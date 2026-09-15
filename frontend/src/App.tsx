@@ -3,10 +3,9 @@
  *
  * Self-contained German UI. Talks to the local MLX backend through mediaApi.ts.
  * Features:
- *   - Bilder (create): prompt -> image with live progress
- *   - Bearbeiten (edit): edit an existing image via img2img ("entferne Hut")
- *   - Galerie (library): per-user generated images
- *   - Einstellungen (settings): model selection + backend status
+ *   - Studio: unified workspace (generate + mask + edit + gallery)
+ *   - Video: text-to-video via the isolated Wan runner
+ *   - Einstellungen: model selection, download/delete, MLX-VLM
  *   - Benutzer: lightweight per-user space stored in the browser
  *
  * No dependency on the old mock-only UI or the i18n dictionary, which keeps the
