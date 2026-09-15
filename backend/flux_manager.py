@@ -1327,6 +1327,58 @@ def generate_image_i2i_gradio(
         gc.collect()
         force_mlx_cleanup()
 
+def generate_image_inpaint_gradio(
+    prompt, input_image, mask_image, model, base_model, seed, height, width, steps, guidance,
+    image_strength, lora_files, metadata, num_images=1, low_ram=False, progress_callback=None
+):
+    """
+    Mask-based inpainting using the already-loaded FLUX.2 model (no second model).
+
+    FLUX.2 Klein does not expose a mask parameter in mflux, so we:
+      1) run the normal FLUX.2 img2img edit on the whole image,
+      2) composite the result back onto the original, keeping only the pixels
+         inside the white mask region (everything outside stays untouched).
+
+    This is true masked inpainting that reuses the loaded generation model.
+    """
+    try:
+        print(f"\n--- Generating mask inpaint (FLUX.2) ---")
+        print(f"Model: {model}")
+        print(f"Prompt: {prompt}")
+        print(f"Image strength: {image_strength}")
+
+        images, info, used_prompt = generate_image_i2i_gradio(
+            prompt, input_image, model, base_model, seed, height, width, steps, guidance,
+            image_strength, lora_files, metadata,
+            num_images=num_images, low_ram=low_ram, progress_callback=progress_callback,
+        )
+
+        if not images:
+            return [], info or "Inpaint produced no image", prompt
+
+        # Composite: keep original outside the mask, edited inside the mask.
+        from PIL import Image
+
+        mask = mask_image.convert("L")
+        if mask.size != input_image.size:
+            mask = mask.resize(input_image.size, Image.LANCZOS)
+        mask = mask.point(lambda p: 255 if p > 127 else 0)
+
+        composited = []
+        for edited in images:
+            if edited.size != input_image.size:
+                edited = edited.resize(input_image.size, Image.LANCZOS)
+            composite = Image.composite(edited, input_image.convert("RGB"), mask)
+            composited.append(composite)
+
+        print(f"Mask inpaint done: {len(composited)} image(s)")
+        return composited, info or "Inpaint finished", used_prompt
+
+    except Exception as e:
+        print(f"Error in mask inpaint: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return [], f"Error: {str(e)}", prompt
 def generate_image_in_context_lora_gradio(
     prompt, reference_image, model, base_model, seed, height, width, steps, guidance,
     lora_style, lora_files, metadata,
