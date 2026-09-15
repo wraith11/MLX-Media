@@ -578,7 +578,7 @@ function SettingsPage({
 type PageId = "studio" | "video" | "settings";
 
 const NAV: { id: PageId; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
-  { id: "studio", label: "Studio", icon: Sparkles },
+  { id: "studio", label: "Image Studio", icon: Sparkles },
   { id: "video", label: "Video", icon: Play },
   { id: "settings", label: "Einstellungen", icon: Settings },
 ];
