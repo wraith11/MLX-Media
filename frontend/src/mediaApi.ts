@@ -176,6 +176,49 @@ export async function fetchQueue(): Promise<QueueInfo> {
   return requestJson<QueueInfo>("/api/v1/queue");
 }
 
+export interface CacheModelEntry {
+  key: string;
+  model: string;
+  loaded_at: number;
+  last_used: number;
+  idle_minutes: number;
+}
+
+export interface CacheStatus {
+  enabled: boolean;
+  timeout_minutes: number;
+  keep_loaded: boolean;
+  cached_models: CacheModelEntry[];
+  memory: {
+    free_bytes: number | null;
+    free_gb: number | null;
+    enough_for_new_model: boolean;
+    required_reserve_gb: number;
+    cached_models: number;
+  };
+}
+
+/** Fetch model-cache + RAM status. */
+export async function fetchCacheStatus(): Promise<CacheStatus> {
+  return requestJson<CacheStatus>("/api/v1/cache/status");
+}
+
+/** Configure the model cache (enabled, timeout in minutes; 0 = keep loaded). */
+export async function setCacheConfig(
+  enabled: boolean,
+  timeout_minutes: number,
+): Promise<CacheStatus> {
+  return requestJson<CacheStatus>("/api/v1/cache/config", {
+    method: "POST",
+    body: JSON.stringify({ enabled, timeout_minutes }),
+  });
+}
+
+/** Immediately unload all cached models. */
+export async function unloadCache(): Promise<CacheStatus> {
+  return requestJson<CacheStatus>("/api/v1/cache/unload", { method: "POST" });
+}
+
 export async function submitGenerate(
   params: GenerateParams,
 ): Promise<{ job_id: string; status: string; type: string }> {
