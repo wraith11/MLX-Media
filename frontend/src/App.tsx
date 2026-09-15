@@ -28,8 +28,6 @@ import {
   X,
 } from "lucide-react";
 import {
-  base64ToDataUrl,
-  dataUrlToBase64,
   deleteModel,
   downloadModel,
   downloadVlm,
@@ -40,10 +38,8 @@ import {
   fetchVideoStatus,
   fetchVlmStatus,
   isTerminal,
-  maskFromText,
   selectModel,
   startVideoSetup,
-  submitGenerate,
   submitVideo,
   type Job,
   type ModelInfo,
