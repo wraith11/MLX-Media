@@ -492,30 +492,62 @@ export default function StudioPage({
 
       {/* BELOW: gallery */}
       <section className="panel">
-        <div className="section-title">Galerie · {gallery.length} Bild(er)</div>
-        {gallery.length === 0 ? (
-          <p className="muted">Noch keine Bilder.</p>
+        <div className="gallery-head">
+          <div className="section-title">Galerie · {filtered.length} Bild(er)</div>
+          <label className="mask-toggle">
+            <input type="checkbox" checked={favoritesOnly} onChange={(e) => setFavoritesOnly(e.target.checked)} />
+            <span>★ Nur Favoriten</span>
+          </label>
+        </div>
+        {filtered.length === 0 ? (
+          <p className="muted">{favoritesOnly ? "Keine Favoriten markiert." : "Noch keine Bilder."}</p>
         ) : (
-          <div className="studio-gallery">
-            {gallery.map((item) => (
-              <div className="result-card" key={item.id}>
-                <button className="gallery-img-btn" onClick={() => loadFromGallery(item)} title="In den Arbeitsbereich laden">
-                  <img src={item.dataUrl} alt={item.prompt} />
-                </button>
-                <div className="result-actions">
-                  <button className="btn" onClick={() => loadFromGallery(item)}>
-                    <Sparkles size={14} /> Laden
-                  </button>
-                  <a className="btn" href={item.dataUrl} download={`bild-${item.id}.png`} title="Speichern">
-                    <Download size={14} />
-                  </a>
+          <div className="studio-day-list">
+            {grouped.map((group) => (
+              <div className="studio-day" key={group.day}>
+                <div className="studio-day-head">
+                  <span className="studio-day-label">{dayLabel(group.day)}</span>
                   <button
                     className="btn btn-danger"
-                    onClick={() => onDeleteImage(item.id)}
-                    title="Löschen"
+                    onClick={() => onDeleteDay(group.day)}
+                    title="Alle Bilder dieses Tages löschen (Favoriten bleiben)"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={13} /> Tag löschen
                   </button>
+                </div>
+                <div className="studio-gallery">
+                  {group.items.map((item) => (
+                    <div className={item.favorite ? "result-card is-fav" : "result-card"} key={item.id}>
+                      <button className="gallery-img-btn" onClick={() => loadFromGallery(item)} title="In den Arbeitsbereich laden">
+                        <img src={item.dataUrl} alt={item.prompt} />
+                      </button>
+                      <div className="gallery-star">
+                        <button
+                          className={item.favorite ? "star-btn is-active" : "star-btn"}
+                          onClick={() => onToggleFavorite(item.id)}
+                          title={item.favorite ? "Favorit — vor Löschen geschützt" : "Als Favorit markieren (schützt vor Löschen)"}
+                        >
+                          ★
+                        </button>
+                      </div>
+                      <div className="result-actions">
+                        <button className="btn" onClick={() => loadFromGallery(item)} title="Laden">
+                          <Sparkles size={14} />
+                        </button>
+                        <a className="btn" href={item.dataUrl} download={`bild-${item.id}.png`} title="Speichern">
+                          <Download size={14} />
+                        </a>
+                        <button
+                          className="btn btn-danger"
+                          onClick={() => onDeleteImage(item.id)}
+                          disabled={item.favorite}
+                          title={item.favorite ? "Favorit kann nicht gelöscht werden" : "Löschen"}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
