@@ -12,9 +12,12 @@ pretending every backend works the same way.
 The `dev` branch replaces the previous mock-only React studio with a **working,
 minimal frontend** that actually talks to the local MLX backend:
 
-- **Studio** — ein verschmolzener Arbeitsbereich für einen produktiven Workflow:
-  - **links** neu generieren (Prompt, Größe, Anzahl) mit Live-Fortschritt,
+- **Image Studio** — ein verschmolzener Arbeitsbereich für einen produktiven Workflow:
+  - **links** neu generieren (Prompt, Größe, Anzahl, erweiterte Einstellungen für
+    Schritte/Seed/Guidance) mit Live-Fortschritt,
   - **in der Mitte** das aktuelle Bild mit Masken-Werkzeugen (Pinsel/Lasso/Radierer),
+    inkl. sichtbarem Hinweis, ob die Maske **manuell gezeichnet** oder **vom System
+    automatisch erzeugt** wurde,
   - **rechts** die Änderung beschreiben. Mit gesetzter Maske wird nur der markierte
     Bereich neu gezeichnet; **ohne Maske** findet das Backend das beschriebene Objekt
     automatisch (z.B. „den Hut durch eine Mütze ersetzen“),
