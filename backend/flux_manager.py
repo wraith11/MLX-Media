@@ -282,6 +282,14 @@ def get_or_create_flux(model, config=None, image=None, lora_paths=None, lora_sca
                     lora_paths=lora_paths,
                     lora_scales=lora_scales,
                 )
+            # Store in the optional cache when applicable.
+            if model_cache.is_enabled() and not image and not lora_paths and not is_controlnet:
+                ck = model_cache.cache_key(
+                    model=base_model,
+                    quantize=("-8-bit" if "-8-bit" in model else "-4-bit" if "-4-bit" in model else "-6-bit" if "-6-bit" in model else "-3-bit" if "-3-bit" in model else "none"),
+                    lora_key="",
+                )
+                model_cache.put(ck, flux)
             return flux
 
         # Only Flux2 models are supported
