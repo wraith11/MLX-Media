@@ -1085,13 +1085,6 @@ body {
   font-size: 12px;
 }
 
-.studio-gallery .result-actions .btn {
-  flex: 1;
-  justify-content: center;
-  padding: 6px 8px;
-  font-size: 12px;
-}
-
 @media (max-width: 1080px) {
   .studio-grid {
     grid-template-columns: 1fr 1fr;
