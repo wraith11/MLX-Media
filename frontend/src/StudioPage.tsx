@@ -231,6 +231,7 @@ export default function StudioPage({
             setCurrent(out);
             setCurrentPrompt(editText.trim());
             setMask(null);
+            setMaskSource(null);
             onAddImage({
               id: `img-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
               dataUrl: out,
