@@ -475,9 +475,19 @@ export default function StudioPage({
                   <input type="number" value={editGuidance} onChange={(e) => setEditGuidance(e.target.value === "" ? "" : Number(e.target.value))} min={0} step={0.5} />
                 </Field>
               </div>
+              <Field label={`Stärke der Änderung: ${editStrength === "" ? "Standard" : `${Math.round(Number(editStrength) * 100)}%`}`}>
+                <input
+                  type="range"
+                  min={0.1}
+                  max={1}
+                  step={0.05}
+                  value={editStrength === "" ? 0.75 : Number(editStrength)}
+                  onChange={(e) => setEditStrength(Number(e.target.value))}
+                />
+              </Field>
               <p className="mask-hint">
-                Höhere Guidance = die Änderung folgt deiner Beschreibung stärker und verändert
-                den maskierten Bereich deutlicher. Niedrigere Werte bleiben näher am Original.
+                Stärke = wie stark der maskierte Bereich neu gezeichnet wird (100% = komplett neu).
+                Höhere Guidance lässt die Änderung der Beschreibung stärker folgen.
               </p>
             </div>
           )}
