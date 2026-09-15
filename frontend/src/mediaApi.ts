@@ -72,6 +72,7 @@ export interface StoredImage {
   dataUrl: string;
   prompt: string;
   createdAt: number;
+  favorite?: boolean;
 }
 
 export interface SystemInfo {
