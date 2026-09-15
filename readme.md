@@ -19,9 +19,11 @@ minimal frontend** that actually talks to the local MLX backend:
     inkl. sichtbarem Hinweis, ob die Maske **manuell gezeichnet** oder **vom System
     automatisch erzeugt** wurde,
   - **rechts** die Änderung beschreiben, mit eigenen erweiterten Einstellungen fürs
-    Inpainting (Schritte/Guidance — steuert, wie stark die Änderung der Beschreibung folgt).
-    Mit gesetzter Maske wird nur der markierte Bereich neu gezeichnet; **ohne Maske**
-    findet das Backend das beschriebene Objekt automatisch (z.B. „den Hut durch eine Mütze ersetzen“),
+    Inpainting (Schritte/Guidance/Stärke — steuern, wie stark die Änderung der Beschreibung
+    folgt und wie stark der maskierte Bereich neu gezeichnet wird).
+    Mit gesetzter Maske wird nur der markierte Bereich neu gezeichnet (mit dem bereits
+    geladenen **FLUX.2-Modell**, kein zweites Modell); **ohne Maske** findet das Backend
+    das beschriebene Objekt automatisch (z.B. „den Hut durch eine Mütze ersetzen“),
   - **darunter** die Galerie — nach Tagen gruppiert, mit Favoriten-Stern (★), Favoriten-Filter
     und „Tag löschen“. Ein Klick lädt das Bild in den Arbeitsbereich.
 - **Video** — **Text zu Video** über den isolierten Wan-2.1-Runner (832×480,
