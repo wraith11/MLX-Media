@@ -293,7 +293,30 @@ export default function StudioPage({
     setMaskSource("manual");
   };
 
-  const gallery = library.slice().reverse();
+  const dayKey = (ts: number) => {
+    const d = new Date(ts);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+  const dayLabel = (key: string) => {
+    const [y, m, dd] = key.split("-").map(Number);
+    const date = new Date(y, m - 1, dd);
+    return date.toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" });
+  };
+
+  // Filter favorites and group by day (newest day first, newest image first within a day).
+  const filtered = favoritesOnly ? library.filter((im) => im.favorite) : library;
+  const grouped = filtered
+    .slice()
+    .reverse()
+    .reduce<{ day: string; items: StoredImage[] }[]>((acc, item) => {
+      const k = dayKey(item.createdAt);
+      const last = acc[acc.length - 1];
+      if (last && last.day === k) last.items.push(item);
+      else acc.push({ day: k, items: [item] });
+      return acc;
+    }, []);
+
+  const return
 
   return (
     <div className="page studio">
