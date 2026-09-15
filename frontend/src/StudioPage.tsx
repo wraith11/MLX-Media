@@ -316,8 +316,6 @@ export default function StudioPage({
       return acc;
     }, []);
 
-  const return
-
   return (
     <div className="page studio">
       <header className="page-head">
