@@ -385,9 +385,9 @@ export default function StudioPage({
             />
           </div>
           <p className="mask-hint">
-            {mask
-              ? "Eine Maske ist gesetzt — nur der markierte Bereich wird neu gezeichnet."
-              : "Keine Maske — das System findet das beschriebene Objekt automatisch und ändert es."}
+            {maskSource === "manual" && "Manuelle Maske gesetzt — nur der markierte Bereich wird neu gezeichnet."}
+            {maskSource === "auto" && "Automatische Maske vom System — prüfe sie im Arbeitsbereich und passe sie bei Bedarf manuell an."}
+            {!maskSource && "Keine Maske — das System findet das beschriebene Objekt automatisch und ändert es."}
           </p>
           <div className="row-actions">
             <button
@@ -399,7 +399,7 @@ export default function StudioPage({
               {editBusy ? "Bearbeite…" : "Anwenden"}
             </button>
             {mask && (
-              <button className="btn" onClick={() => setMask(null)}>
+              <button className="btn" onClick={() => { setMask(null); setMaskSource(null); }}>
                 Maske löschen
               </button>
             )}
