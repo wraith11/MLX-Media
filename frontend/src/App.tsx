@@ -395,8 +395,12 @@ function VideoPage({
 }
 function SettingsPage({
   notify,
+  settings,
+  onSettingsChange,
 }: {
   notify: (msg: string) => void;
+  settings: AppSettings;
+  onSettingsChange: (s: AppSettings) => void;
 }) {
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [active, setActive] = useState<string>("");
