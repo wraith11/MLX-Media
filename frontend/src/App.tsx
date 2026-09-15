@@ -634,11 +634,6 @@ export default function App() {
     saveLibrary(activeUser, next);
   };
 
-  const goEdit = (item: StoredImage) => {
-    setEditTarget(item);
-    setPage("edit");
-  };
-
   const switchUser = (name: string) => {
     setActiveUser(name);
     localStorage.setItem(ACTIVE_USER_KEY, name);
