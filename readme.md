@@ -12,22 +12,21 @@ pretending every backend works the same way.
 The `dev` branch replaces the previous mock-only React studio with a **working,
 minimal frontend** that actually talks to the local MLX backend:
 
-- **Bilder erzeugen** — prompt → Bild, mit Live-Fortschritt (async Job-API).
-- **Bild bearbeiten** — **echtes maskenbasiertes Inpainting** auf bereits
-  erzeugten oder hochgeladenen Bildern:
-  - manuell per **Pinsel**, **Lasso** oder **Radierer** (Canvas-Masken-Editor),
-  - oder per **Textbeschreibung** (Backend lokalisiert das Objekt mit einem
-    **MLX-VLM** und erzeugt automatisch eine Maske; das Standardmodell ist
-    `Qwen2.5-VL-7B-Instruct-4bit` und wird beim ersten Gebrauch automatisch
-    von Hugging Face geladen).
-- **Galerie** — deine erzeugten Bilder, pro Benutzer getrennt.
+- **Studio** — ein verschmolzener Arbeitsbereich für einen produktiven Workflow:
+  - **links** neu generieren (Prompt, Größe, Anzahl) mit Live-Fortschritt,
+  - **in der Mitte** das aktuelle Bild mit Masken-Werkzeugen (Pinsel/Lasso/Radierer),
+  - **rechts** die Änderung beschreiben. Mit gesetzter Maske wird nur der markierte
+    Bereich neu gezeichnet; **ohne Maske** findet das Backend das beschriebene Objekt
+    automatisch (z.B. „den Hut durch eine Mütze ersetzen“),
+  - **darunter** die Galerie — ein Klick lädt das Bild in den Arbeitsbereich.
 - **Video** — **Text zu Video** über den isolierten Wan-2.1-Runner (832×480,
   16 fps). Einmalig einrichten mit `./setup.sh --video`.
 - **Benutzer** — mehrere Benutzer mit eigenem, getrenntem Bildbereich (im Browser
   gespeichert).
 - **Einstellungen** — Systemstatus, aktives Modell wählen, Modelle herunterladen
   und von der Platte löschen, MLX-VLM für Text-Masken bereitstellen.
-- Start-/Home-Tab und Time Lens wurden entfernt.
+- Start-/Home-Tab, Time Lens und die getrennten Tabs „Erzeugen/Bearbeiten/Galerie“
+  wurden entfernt (alles ist jetzt im Studio gebündelt).
 - Die Oberfläche ist deutsch, schlank und **Firefox-kompatibel**.
 
 ### Inpainting-Hinweis
