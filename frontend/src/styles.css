@@ -915,6 +915,8 @@ body {
     width: 100%;
     flex-wrap: wrap;
   }
+}
+
 /* ── Studio workspace (generate + edit + gallery) ───────────────── */
 
 .studio .page-head {
