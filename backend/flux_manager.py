@@ -150,11 +150,38 @@ def calculate_dimensions_with_scale(
 def get_or_create_flux(model, config=None, image=None, lora_paths=None, lora_scales=None, is_controlnet=False, low_ram=False, base_model_override: Optional[str] = None):
     """
     Create or retrieve a Flux model instance.
+
+    When the optional model cache is enabled, instances are reused (lazy load)
+    and unloaded by an idle timeout. A RAM check runs before loading.
     """
+    from backend import model_cache
+
     try:
         base_model = strip_quant_suffix(model)
         base_model_override = normalize_base_model_choice(base_model_override)
         model_path: Optional[object] = resolve_local_path(base_model)
+
+        # Cache lookup (only when the cache is enabled and no image/LoRA editing).
+        if model_cache.is_enabled() and not image and not lora_paths and not is_controlnet:
+            lora_key = ""
+            cache_key = model_cache.cache_key(
+                model=base_model,
+                quantize=("-8-bit" if "-8-bit" in model else "-4-bit" if "-4-bit" in model else "-6-bit" if "-6-bit" in model else "-3-bit" if "-3-bit" in model else "none"),
+                lora_key=lora_key,
+            )
+            cached = model_cache.get(cache_key)
+            if cached is not None:
+                print(f"[model-cache] Reusing cached instance for {base_model}")
+                return cached
+
+            if not model_cache.enough_memory():
+                # Try to make room by unloading everything, then re-check.
+                model_cache.unload_all()
+                if not model_cache.enough_memory():
+                    raise MemoryError(
+                        "Not enough free unified memory to load the model. "
+                        "Close other apps or reduce the model size / quantisation."
+                    )
 
         # Pre-quantized MLX repos use aliases like `flux2-klein-4b-mlx-4bit`.
         # For these, the mflux loader needs a real HF repo id (org/model), not the alias.
