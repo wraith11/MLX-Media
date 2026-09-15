@@ -1018,4 +1018,57 @@ body {
     grid-column: auto;
     order: 0;
   }
+/* ── Studio: mask source indicator ──────────────────────────────── */
+
+.studio-mask-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mask-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+.mask-badge-manual {
+  background: rgba(108, 167, 255, 0.2);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+
+.mask-badge-auto {
+  background: rgba(155, 128, 255, 0.2);
+  border: 1px solid var(--accent-2);
+  color: var(--accent-2);
+}
+
+/* ── Studio: advanced generate settings ─────────────────────────── */
+
+.advanced-toggle {
+  width: 100%;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.advanced-toggle:hover {
+  color: var(--text);
+}
+
+.advanced-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  background: var(--surface);
+}
+
+.advanced-box .grid-2 {
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
 }
