@@ -648,9 +648,46 @@ export default function App() {
   };
 
   const onDelete = (id: string) => {
+    const target = library.find((item) => item.id === id);
+    if (target?.favorite) {
+      notify("Favorit kann nicht gelöscht werden — Stern entfernen.");
+      return;
+    }
     const next = library.filter((item) => item.id !== id);
     setLibrary(next);
     saveLibrary(activeUser, next);
+  };
+
+  /** Delete a whole day, skipping favorites. */
+  const onDeleteDay = (dayKey: string) => {
+    const next = library.filter((item) => {
+      const k = dayKeyOf(item.createdAt);
+      if (k !== dayKey) return true;
+      return item.favorite; // keep favorites
+    });
+    setLibrary(next);
+    saveLibrary(activeUser, next);
+  };
+
+  const toggleFavorite = (id: string) => {
+    const next = library.map((item) =>
+      item.id === id ? { ...item, favorite: !item.favorite } : item
+    );
+    setLibrary(next);
+    saveLibrary(activeUser, next);
+  };
+
+  const updateSettings = (s: AppSettings) => {
+    setSettings(s);
+    saveSettings(s);
+    // Re-apply auto-delete immediately.
+    let items = loadLibrary(activeUser);
+    if (s.autoDeleteDays > 0) {
+      const cutoff = Date.now() - s.autoDeleteDays * 24 * 3600 * 1000;
+      items = items.filter((im) => im.favorite || im.createdAt >= cutoff);
+      saveLibrary(activeUser, items);
+    }
+    setLibrary(items);
   };
 
   const switchUser = (name: string) => {
