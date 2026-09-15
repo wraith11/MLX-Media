@@ -121,6 +121,15 @@ function saveLibrary(user: string, items: StoredImage[]) {
   }
 }
 
+/** Local day key (YYYY-MM-DD) used to group the gallery. */
+function dayKeyOf(ts: number): string {
+  const d = new Date(ts);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 /* ── Small UI helpers ────────────────────────────────────────────── */
 
 function ProgressBar({ percent }: { percent: number }) {
