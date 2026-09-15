@@ -18,25 +18,40 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 def get_or_create_flux_fill(quantize=None, low_ram=False):
     """
     Create or retrieve a Flux Fill instance.
+
+    Uses the mflux 0.18 constructor API (ModelConfig + class instance),
+    which replaced the removed ``Flux1.from_huggingface`` classmethod.
     """
     try:
         try:
             from mflux.flux.flux import Flux1
         except ModuleNotFoundError:
             from mflux.models.flux.variants.txt2img.flux import Flux1
-        
-        # Fill model is always FLUX.1-Fill-dev
-        model_config = "flux.1-fill-dev"
-        
+
+        from backend.mflux_compat import ModelConfig
+        from backend.model_manager import resolve_local_path
+
+        # Fill model is always FLUX.1-Fill-dev. Prefer a local checkout.
+        model_config = ModelConfig.dev_fill()
+        local = resolve_local_path("dev-fill")
+
         print(f"Creating Flux Fill with model_config={model_config}, quantize={quantize}")
-        
-        flux = Flux1.from_huggingface(
-            model_name=model_config,
-            quantize=quantize
-        )
-        
+
+        try:
+            flux = Flux1(
+                model_config=model_config,
+                quantize=quantize,
+                model_path=str(local) if local else None,
+            )
+        except TypeError:
+            flux = Flux1(
+                model_config=model_config,
+                quantize=quantize,
+                local_path=str(local) if local else None,
+            )
+
         return flux
-        
+
     except Exception as e:
         print(f"Error creating Flux Fill instance: {str(e)}")
         import traceback
