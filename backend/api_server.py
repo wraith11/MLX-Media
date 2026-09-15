@@ -1011,7 +1011,6 @@ class APIServer(BaseHTTPRequestHandler):
         })
 
     def handle_vlm_status(self):
-    def handle_vlm_status(self):
         """GET /api/v1/vlm/status - which (if any) MLX VLM is installed."""
         from backend import mlx_vlm_manager as vlm
         return _json_response(self, vlm.vlm_status())
