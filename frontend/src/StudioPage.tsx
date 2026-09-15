@@ -282,7 +282,7 @@ export default function StudioPage({
     <div className="page studio">
       <header className="page-head">
         <div>
-          <span className="eyebrow">Studio</span>
+          <span className="eyebrow">Image Studio</span>
           <h1>Bilder &amp; Bearbeitung</h1>
           <p>
             Neu generieren (links), Bereich markieren &amp; ändern (Mitte), Änderung
