@@ -1018,6 +1018,8 @@ body {
     grid-column: auto;
     order: 0;
   }
+}
+
 /* ── Studio: mask source indicator ──────────────────────────────── */
 
 .studio-mask-head {
