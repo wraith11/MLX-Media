@@ -13,21 +13,26 @@ The `dev` branch replaces the previous mock-only React studio with a **working,
 minimal frontend** that actually talks to the local MLX backend:
 
 - **Image Studio** — ein verschmolzener Arbeitsbereich für einen produktiven Workflow:
-  - **links** neu generieren (Prompt, Größe, Anzahl, erweiterte Einstellungen für
-    Schritte/Seed/Guidance) mit Live-Fortschritt,
+  - **links** neu generieren (Prompt, Größe, Anzahl) mit Live-Fortschritt und eigenen
+    **erweiterten Einstellungen** (Schritte/Seed/Guidance),
   - **in der Mitte** das aktuelle Bild mit Masken-Werkzeugen (Pinsel/Lasso/Radierer),
     inkl. sichtbarem Hinweis, ob die Maske **manuell gezeichnet** oder **vom System
     automatisch erzeugt** wurde,
-  - **rechts** die Änderung beschreiben. Mit gesetzter Maske wird nur der markierte
-    Bereich neu gezeichnet; **ohne Maske** findet das Backend das beschriebene Objekt
-    automatisch (z.B. „den Hut durch eine Mütze ersetzen“),
-  - **darunter** die Galerie — ein Klick lädt das Bild in den Arbeitsbereich.
+  - **rechts** die Änderung beschreiben, mit eigenen erweiterten Einstellungen fürs
+    Inpainting (Schritte/Guidance — steuert, wie stark die Änderung der Beschreibung folgt).
+    Mit gesetzter Maske wird nur der markierte Bereich neu gezeichnet; **ohne Maske**
+    findet das Backend das beschriebene Objekt automatisch (z.B. „den Hut durch eine Mütze ersetzen“),
+  - **darunter** die Galerie — nach Tagen gruppiert, mit Favoriten-Stern (★), Favoriten-Filter
+    und „Tag löschen“. Ein Klick lädt das Bild in den Arbeitsbereich.
 - **Video** — **Text zu Video** über den isolierten Wan-2.1-Runner (832×480,
   16 fps). Einmalig einrichten mit `./setup.sh --video`.
 - **Benutzer** — mehrere Benutzer mit eigenem, getrenntem Bildbereich (im Browser
   gespeichert).
 - **Einstellungen** — Systemstatus, aktives Modell wählen, Modelle herunterladen
-  und von der Platte löschen, MLX-VLM für Text-Masken bereitstellen.
+  und von der Platte löschen, MLX-VLM für Text-Masken bereitstellen, plus
+  **Aufbewahrung** (automatisches Löschen nach x Tagen, Standard 0 = aus).
+- **Favoriten** schützen ein Bild vor manuellem Löschen, „Tag löschen“ und automatischem
+  Löschen — ein Bild wird nur entfernt, wenn es nicht als Favorit markiert ist.
 - Start-/Home-Tab, Time Lens und die getrennten Tabs „Erzeugen/Bearbeiten/Galerie“
   wurden entfernt (alles ist jetzt im Studio gebündelt).
 - Die Oberfläche ist deutsch, schlank und **Firefox-kompatibel**.
