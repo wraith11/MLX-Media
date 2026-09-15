@@ -52,7 +52,6 @@ import {
   type VideoStatus,
   type VlmStatus,
 } from "./mediaApi";
-import MaskEditor from "./MaskEditor";
 import StudioPage from "./StudioPage";
 
 /* ── Per-user persistence ────────────────────────────────────────── */
