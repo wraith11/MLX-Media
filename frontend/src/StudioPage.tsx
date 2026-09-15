@@ -222,7 +222,8 @@ export default function StudioPage({
         prompt: editText.trim(),
         init_images: [dataUrlToBase64(current)],
         mask: effectiveMask ? dataUrlToBase64(effectiveMask) : undefined,
-        ...(guidance !== "" ? { guidance } : {}),
+        ...(editSteps !== "" ? { steps: editSteps } : {}),
+        ...(editGuidance !== "" ? { guidance: editGuidance } : {}),
       });
       editPollRef.current = window.setInterval(async () => {
         let job: Job;
