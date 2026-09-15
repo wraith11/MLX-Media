@@ -71,14 +71,15 @@ build_frontend() {
 }
 
 predownload_models() {
-  # Optionally pre-download the inpainting (Fill) model so the first inpaint
-  # job does not stall on a large Hugging Face download.
+  # Optionally pre-download the default generation model so the first job does
+  # not stall on a large Hugging Face download. Inpainting uses the same model.
   if [ -x "$VENV_DIR/bin/python" ]; then
-    log "Lade FLUX.1-Fill-dev für Inpainting vor (einmalig, groß) …"
+    log "Lade Flux2-Klein-Modell vor (einmalig, groß) …"
     "$VENV_DIR/bin/python" - <<'PY'
-from mflux.flux.flux import Flux1
-Flux1.from_huggingface(model_name="flux.1-fill-dev", quantize=None)
-print("FLUX.1-Fill-dev bereit.")
+from mflux.models.flux2.variants.txt2img.flux2_klein import Flux2Klein
+from mflux.models.common.config.model_config import ModelConfig
+Flux2Klein(model_config=ModelConfig.flux2_klein_4b())
+print("Flux2-Klein bereit.")
 PY
   else
     log "venv fehlt — Modell-Vorabladen übersprungen (erst ./setup.sh)."
