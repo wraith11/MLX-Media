@@ -99,17 +99,23 @@ export default function StudioPage({
   const [maskSource, setMaskSource] = useState<"manual" | "auto" | null>(null);
 
   // ── Generate advanced settings ──────────────────────────────────
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [steps, setSteps] = useState<number | "">("");
-  const [seed, setSeed] = useState<number | "">("");
-  const [guidance, setGuidance] = useState<number | "">(3.5);
+  const [showGenAdvanced, setShowGenAdvanced] = useState(false);
+  const [genSteps, setGenSteps] = useState<number | "">("");
+  const [genSeed, setGenSeed] = useState<number | "">("");
+  const [genGuidance, setGenGuidance] = useState<number | "">(3.5);
 
   // ── Edit state ──────────────────────────────────────────────────
   const [editText, setEditText] = useState("");
   const [editBusy, setEditBusy] = useState(false);
   const [editProgress, setEditProgress] = useState(0);
   const [editStage, setEditStage] = useState("");
+  const [showEditAdvanced, setShowEditAdvanced] = useState(false);
+  const [editSteps, setEditSteps] = useState<number | "">("");
+  const [editGuidance, setEditGuidance] = useState<number | "">(30);
   const editPollRef = useRef<number | null>(null);
+
+  // Gallery UI state
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
 
   // Clear pollers on unmount.
   useEffect(() => {
