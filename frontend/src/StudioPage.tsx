@@ -109,7 +109,8 @@ export default function StudioPage({
   const [editStage, setEditStage] = useState("");
   const [showEditAdvanced, setShowEditAdvanced] = useState(false);
   const [editSteps, setEditSteps] = useState<number | "">("");
-  const [editGuidance, setEditGuidance] = useState<number | "">(30);
+  const [editGuidance, setEditGuidance] = useState<number | "">("");
+  const [editStrength, setEditStrength] = useState<number | "">(0.75);
   const editPollRef = useRef<number | null>(null);
 
   // Gallery UI state
