@@ -257,6 +257,7 @@ export default function StudioPage({
     setCurrent(item.dataUrl);
     setCurrentPrompt(item.prompt);
     setMask(null);
+    setMaskSource(null);
     setEditText("");
   };
 
@@ -268,6 +269,7 @@ export default function StudioPage({
       setCurrent(String(reader.result));
       setCurrentPrompt("");
       setMask(null);
+      setMaskSource(null);
       setEditText("");
     };
     reader.readAsDataURL(file);
