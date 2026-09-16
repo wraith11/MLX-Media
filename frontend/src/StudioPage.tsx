@@ -409,7 +409,7 @@ export default function StudioPage({
                   {maskSource === "manual" && <span className="mask-badge mask-badge-manual">Manuell</span>}
                   {maskSource === "auto" && <span className="mask-badge mask-badge-auto">Vom System</span>}
                 </div>
-                <MaskEditor image={current} onChange={manualMaskChange} />
+                <MaskEditor key={maskResetKey} image={current} onChange={manualMaskChange} />
               </div>
               {currentPrompt && <div className="result-caption">{currentPrompt}</div>}
             </div>
