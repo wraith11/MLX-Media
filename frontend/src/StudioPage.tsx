@@ -405,7 +405,7 @@ export default function StudioPage({
               <p>Generiere ein Bild oder wähle eines aus der Galerie.</p>
             </div>
           ) : (
-            <>
+            <div className="studio-canvas-inner">
               <div className="studio-mask-tools">
                 <div className="studio-mask-head">
                   <span className="muted">Maske zeichnen:</span>
@@ -414,11 +414,8 @@ export default function StudioPage({
                 </div>
                 <MaskEditor image={current} onChange={manualMaskChange} />
               </div>
-              <div className="preview-image studio-preview">
-                <img src={current} alt="Aktuelles Bild" />
-              </div>
               {currentPrompt && <div className="result-caption">{currentPrompt}</div>}
-            </>
+            </div>
           )}
         </section>
 
