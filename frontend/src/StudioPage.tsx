@@ -386,11 +386,6 @@ export default function StudioPage({
               <span>{genStage}</span>
             </div>
           )}
-          <label className="upload-tile">
-            <Upload size={16} />
-            <span>Bild hochladen</span>
-            <input type="file" accept="image/*" onChange={onUpload} />
-          </label>
         </section>
 
         {/* CENTER: current image + mask tools */}
