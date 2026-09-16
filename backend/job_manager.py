@@ -339,7 +339,8 @@ class JobManager:
         steps = str(params.get("steps", ""))
         guidance = float(params.get("guidance", 3.5))
         # image_strength controls how strongly the edit follows the prompt.
-        image_strength = float(params.get("image_strength", 0.75))
+        # Lower values keep closer to the original (avoid "noisy" over-edit).
+        image_strength = float(params.get("image_strength", 0.5))
         num_images = int(params.get("num_images", 1))
         seed = params.get("seed")
         lora_files = params.get("lora_files") or None
