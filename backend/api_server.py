@@ -564,6 +564,7 @@ class APIServer(BaseHTTPRequestHandler):
         except Exception as exc:
             return _bad_request(self, str(exc))
 
+        model = _resolve_model_from_payload(data)
         prompt = data.get("prompt")
         init_images = data.get("init_images") or data.get("images") or []
         mask_b64 = data.get("mask") or data.get("mask_image") or data.get("masks")
