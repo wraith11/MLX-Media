@@ -244,9 +244,7 @@ export default function StudioPage({
             const out = base64ToDataUrl(job.result.images[0]);
             setCurrent(out);
             setCurrentPrompt(editText.trim());
-            setMask(null);
-            setMaskSource(null);
-            setMaskResetKey((k) => k + 1);
+            // Keep the mask so the user can iterate on further edits.
             onAddImage({
               id: `img-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
               dataUrl: out,
