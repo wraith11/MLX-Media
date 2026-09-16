@@ -110,7 +110,7 @@ export default function StudioPage({
   const [showEditAdvanced, setShowEditAdvanced] = useState(false);
   const [editSteps, setEditSteps] = useState<number | "">(4);
   const [editGuidance, setEditGuidance] = useState<number | "">("");
-  const [editStrength, setEditStrength] = useState<number | "">(0.75);
+  const [editStrength, setEditStrength] = useState<number | "">(0.5);
   const editPollRef = useRef<number | null>(null);
   // Bump this to force the MaskEditor to remount and clear its painted mask.
   const [maskResetKey, setMaskResetKey] = useState(0);
