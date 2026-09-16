@@ -455,7 +455,7 @@ export default function StudioPage({
             className="btn advanced-toggle"
             onClick={() => setShowEditAdvanced((v) => !v)}
           >
-            Erweiterte Einstellungen (Bearbeiten) {showEditAdvanced ? "▲" : "▼"}
+            Erweiterte Einstellungen {showEditAdvanced ? "▲" : "▼"}
           </button>
           {showEditAdvanced && (
             <div className="advanced-box">
