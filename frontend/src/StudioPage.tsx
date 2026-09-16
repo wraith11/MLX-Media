@@ -174,6 +174,7 @@ export default function StudioPage({
             setCurrentPrompt(genPrompt.trim());
             setMask(null);
             setMaskSource(null);
+            setMaskResetKey((k) => k + 1);
             onAddImage({
               id: `img-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
               dataUrl: out,
