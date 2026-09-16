@@ -220,13 +220,13 @@ export default function StudioPage({
         }
       }
       const submitted = await submitGenerate({
-        type: "inpaint",
+        type: effectiveMask ? "inpaint" : "img2img",
         prompt: editText.trim(),
         init_images: [dataUrlToBase64(current)],
-        mask: effectiveMask ? dataUrlToBase64(effectiveMask) : undefined,
+        ...(effectiveMask ? { mask: dataUrlToBase64(effectiveMask) } : {}),
+        ...(effectiveMask ? {} : { image_strength: editStrength !== "" ? editStrength : 0.75 }),
         ...(editSteps !== "" ? { steps: editSteps } : {}),
         ...(editGuidance !== "" ? { guidance: editGuidance } : {}),
-        ...(editStrength !== "" ? { image_strength: editStrength } : {}),
       });
       editPollRef.current = window.setInterval(async () => {
         let job: Job;
