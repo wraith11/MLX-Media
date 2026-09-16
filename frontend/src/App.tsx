@@ -834,7 +834,7 @@ export default function App() {
     if (s.autoDeleteDays > 0) {
       const cutoff = Date.now() - s.autoDeleteDays * 24 * 3600 * 1000;
       items = items.filter((im) => im.favorite || im.createdAt >= cutoff);
-      saveLibrary(activeUser, items);
+      void saveLibrary(activeUser, items);
     }
     setLibrary(items);
   };
