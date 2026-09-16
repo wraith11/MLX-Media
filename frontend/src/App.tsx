@@ -793,7 +793,7 @@ export default function App() {
   const onGenerated = (img: StoredImage) => {
     const next = [...library, img];
     setLibrary(next);
-    saveLibrary(activeUser, next);
+    void saveLibrary(activeUser, next);
   };
 
   const onDelete = (id: string) => {
@@ -804,7 +804,7 @@ export default function App() {
     }
     const next = library.filter((item) => item.id !== id);
     setLibrary(next);
-    saveLibrary(activeUser, next);
+    void saveLibrary(activeUser, next);
   };
 
   /** Delete a whole day, skipping favorites. */
@@ -815,7 +815,7 @@ export default function App() {
       return item.favorite; // keep favorites
     });
     setLibrary(next);
-    saveLibrary(activeUser, next);
+    void saveLibrary(activeUser, next);
   };
 
   const toggleFavorite = (id: string) => {
@@ -823,7 +823,7 @@ export default function App() {
       item.id === id ? { ...item, favorite: !item.favorite } : item
     );
     setLibrary(next);
-    saveLibrary(activeUser, next);
+    void saveLibrary(activeUser, next);
   };
 
   const updateSettings = (s: AppSettings) => {
