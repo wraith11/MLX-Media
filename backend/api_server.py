@@ -592,7 +592,8 @@ class APIServer(BaseHTTPRequestHandler):
                 prompt,
                 init_img,
                 mask_img,
-                None,
+                None,   # model (auto-resolved)
+                None,   # base_model
                 seed,
                 height,
                 width,
@@ -600,7 +601,7 @@ class APIServer(BaseHTTPRequestHandler):
                 guidance,
                 image_strength,
                 lora_files,
-                False,
+                False,  # metadata
                 num_images=num_images,
                 low_ram=low_ram,
             )
