@@ -293,9 +293,45 @@ export default function StudioPage({
 
   /** User painted a mask manually -> mark it as manual so the UI/prompting is explicit. */
   const manualMaskChange = (m: string) => {
-    setMask(m);
-    setMaskSource("manual");
+    // Determine if the mask is effectively empty (all black). The MaskEditor
+    // fires onChange with an empty mask on mount/clear, which must NOT count as
+    // a "manual mask".
+    isMaskEmpty(m).then((empty) => {
+      if (empty) {
+        setMask(null);
+        setMaskSource(null);
+      } else {
+        setMask(m);
+        setMaskSource("manual");
+      }
+    });
   };
+
+  /** Return true when a mask data URL has no (bright) painted pixels. */
+  const isMaskEmpty = (dataUrl: string): Promise<boolean> =>
+    new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const c = document.createElement("canvas");
+          c.width = img.width;
+          c.height = img.height;
+          const ctx = c.getContext("2d", { willReadFrequently: true });
+          if (!ctx) return resolve(true);
+          ctx.drawImage(img, 0, 0);
+          // Sample a grid of pixels; if any is bright, the mask is not empty.
+          const data = ctx.getImageData(0, 0, c.width, c.height).data;
+          for (let i = 0; i < data.length; i += 40) {
+            if (data[i] > 40) return resolve(false);
+          }
+          resolve(true);
+        } catch {
+          resolve(false);
+        }
+      };
+      img.onerror = () => resolve(false);
+      img.src = dataUrl;
+    });
 
   const dayKey = (ts: number) => {
     const d = new Date(ts);
