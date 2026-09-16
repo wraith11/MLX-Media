@@ -112,6 +112,8 @@ export default function StudioPage({
   const [editGuidance, setEditGuidance] = useState<number | "">("");
   const [editStrength, setEditStrength] = useState<number | "">(0.75);
   const editPollRef = useRef<number | null>(null);
+  // Bump this to force the MaskEditor to remount and clear its painted mask.
+  const [maskResetKey, setMaskResetKey] = useState(0);
 
   // Gallery UI state
   const [favoritesOnly, setFavoritesOnly] = useState(false);
