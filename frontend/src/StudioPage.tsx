@@ -272,6 +272,7 @@ export default function StudioPage({
     setMask(null);
     setMaskSource(null);
     setEditText("");
+    setMaskResetKey((k) => k + 1);
   };
 
   const onUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -284,6 +285,7 @@ export default function StudioPage({
       setMask(null);
       setMaskSource(null);
       setEditText("");
+      setMaskResetKey((k) => k + 1);
     };
     reader.readAsDataURL(file);
     e.target.value = "";
