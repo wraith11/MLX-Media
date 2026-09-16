@@ -447,7 +447,7 @@ export default function StudioPage({
               {editBusy ? "Bearbeite…" : "Anwenden"}
             </button>
             {mask && (
-              <button className="btn" onClick={() => { setMask(null); setMaskSource(null); }}>
+              <button className="btn" onClick={() => { setMask(null); setMaskSource(null); setMaskResetKey((k) => k + 1); }}>
                 Maske löschen
               </button>
             )}
