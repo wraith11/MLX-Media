@@ -776,7 +776,7 @@ export default function App() {
     if (settings.autoDeleteDays > 0) {
       const cutoff = Date.now() - settings.autoDeleteDays * 24 * 3600 * 1000;
       items = items.filter((im) => im.favorite || im.createdAt >= cutoff);
-      saveLibrary(activeUser, items);
+      void saveLibrary(activeUser, items);
     }
     setLibrary(items);
     // eslint-disable-next-line react-hooks/exhaustive-deps
