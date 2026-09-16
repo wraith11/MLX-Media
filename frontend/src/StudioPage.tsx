@@ -108,7 +108,7 @@ export default function StudioPage({
   const [editProgress, setEditProgress] = useState(0);
   const [editStage, setEditStage] = useState("");
   const [showEditAdvanced, setShowEditAdvanced] = useState(false);
-  const [editSteps, setEditSteps] = useState<number | "">("");
+  const [editSteps, setEditSteps] = useState<number | "">(4);
   const [editGuidance, setEditGuidance] = useState<number | "">("");
   const [editStrength, setEditStrength] = useState<number | "">(0.75);
   const editPollRef = useRef<number | null>(null);
