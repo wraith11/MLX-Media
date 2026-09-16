@@ -98,7 +98,7 @@ export default function StudioPage({
 
   // ── Generate advanced settings ──────────────────────────────────
   const [showGenAdvanced, setShowGenAdvanced] = useState(false);
-  const [genSteps, setGenSteps] = useState<number | "">("");
+  const [genSteps, setGenSteps] = useState<number | "">(4);
   const [genSeed, setGenSeed] = useState<number | "">("");
   const [genGuidance, setGenGuidance] = useState<number | "">(3.5);
 
