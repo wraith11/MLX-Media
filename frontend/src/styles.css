@@ -987,8 +987,19 @@ body {
   background: var(--surface);
 }
 
+.studio-preview {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #000;
+}
+
 .studio-preview img {
   width: 100%;
+  height: 100%;
+  object-fit: contain;
   border-radius: var(--radius);
   display: block;
   background: #000;
