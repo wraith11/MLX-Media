@@ -925,13 +925,24 @@ body {
 
 .studio-grid {
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr) 260px;
+  grid-template-columns: 300px minmax(0, 1fr) 320px;
   gap: 16px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .studio-col {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.studio-col > .field,
+.studio-col > .row-actions,
+.studio-col > textarea,
+.studio-col > .advanced-toggle,
+.studio-col > .advanced-box,
+.studio-col > .upload-tile {
+  flex-shrink: 0;
 }
 
 .studio-generate .grid-2 {
@@ -943,6 +954,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex: 1;
 }
 
 .studio-canvas-head {
