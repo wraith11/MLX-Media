@@ -422,7 +422,45 @@ def get_model_download_status(alias: str) -> dict:
             if f.is_file()
         )
         return {"downloaded": True, "size_bytes": total, "local_path": str(local)}
+
+    # Also detect models that have been auto-downloaded into the Hugging Face
+    # shared cache (the common case: models load on first use and live there).
+    try:
+        from backend.model_manager import MODELS as _MODELS
+        cfg = _MODELS.get(alias)
+        repo = cfg.model_name if cfg else None
+        if repo:
+            cache_hit = _hf_cache_path(repo)
+            if cache_hit:
+                total = sum(
+                    f.stat().st_size
+                    for f in cache_hit.rglob("*")
+                    if f.is_file()
+                )
+                return {"downloaded": True, "size_bytes": total, "local_path": str(cache_hit)}
+    except Exception:
+        pass
+
     return {"downloaded": False, "size_bytes": 0, "local_path": None}
+
+
+def _hf_cache_path(repo_id: str) -> Optional[Path]:
+    """Return the resolved HF cache snapshot dir for a repo id, or None."""
+    import os as _os
+
+    hf_home = _os.environ.get("HF_HOME")
+    if hf_home:
+        base = Path(hf_home).expanduser()
+    else:
+        base = Path.home() / ".cache" / "huggingface"
+    repo_dir = base / "hub" / f"models--{repo_id.replace('/', '--')}"
+    if not repo_dir.is_dir():
+        return None
+    snapshots = repo_dir / "snapshots"
+    if not snapshots.is_dir():
+        return None
+    dirs = sorted(snapshots.iterdir(), key=lambda p: p.stat().st_mtime, reverse=True)
+    return dirs[0] if dirs else None
 
 
 def delete_local_model(alias: str) -> bool:
