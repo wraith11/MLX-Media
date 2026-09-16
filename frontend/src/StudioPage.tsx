@@ -492,6 +492,11 @@ export default function StudioPage({
         </section>
       </div>
 
+      <label className="upload-tile">
+        <Upload size={16} />
+        <span>Bild hochladen (in den Arbeitsbereich)</span>
+        <input type="file" accept="image/*" onChange={onUpload} />
+      </label>
       {/* BELOW: gallery */}
       <section className="panel">
         <div className="gallery-head">
