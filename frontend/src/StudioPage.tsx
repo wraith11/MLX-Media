@@ -439,7 +439,7 @@ export default function StudioPage({
           <p className="mask-hint">
             {maskSource === "manual" && "Manuelle Maske gesetzt — nur der markierte Bereich wird neu gezeichnet."}
             {maskSource === "auto" && "Automatische Maske vom System — prüfe sie im Arbeitsbereich und passe sie bei Bedarf manuell an."}
-            {!maskSource && "Keine Maske — das System findet das beschriebene Objekt automatisch und ändert es."}
+            {!maskSource && "Keine Maske — das System versucht, das beschriebene Objekt zu finden. Wird nichts gefunden (z.B. „Setze dem Mann einen Hut auf“), wird das ganze Bild bearbeitet."}
           </p>
           <div className="row-actions">
             <button
