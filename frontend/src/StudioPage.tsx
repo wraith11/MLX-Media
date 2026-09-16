@@ -460,11 +460,11 @@ export default function StudioPage({
           {showEditAdvanced && (
             <div className="advanced-box">
               <div className="grid-2">
-                <Field label="Schritte (leer = Standard)">
+                <Field label={`Schritte: ${editSteps === "" ? "Standard" : editSteps}`}>
                   <input type="number" value={editSteps} onChange={(e) => setEditSteps(e.target.value === "" ? "" : Number(e.target.value))} min={1} max={50} placeholder="Standard" />
                 </Field>
                 <Field label={`Guidance: ${editGuidance === "" ? "Standard" : editGuidance}`}>
-                  <input type="number" value={editGuidance} onChange={(e) => setEditGuidance(e.target.value === "" ? "" : Number(e.target.value))} min={0} step={0.5} />
+                  <input type="number" value={editGuidance} onChange={(e) => setEditGuidance(e.target.value === "" ? "" : Number(e.target.value))} min={0} step={0.5} placeholder="Standard" />
                 </Field>
               </div>
               <Field label={`Stärke der Änderung: ${editStrength === "" ? "Standard" : `${Math.round(Number(editStrength) * 100)}%`}`}>
