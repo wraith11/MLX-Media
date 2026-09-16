@@ -358,7 +358,7 @@ export default function StudioPage({
             className="btn advanced-toggle"
             onClick={() => setShowGenAdvanced((v) => !v)}
           >
-            Erweiterte Einstellungen (Generieren) {showGenAdvanced ? "▲" : "▼"}
+            Erweiterte Einstellungen {showGenAdvanced ? "▲" : "▼"}
           </button>
           {showGenAdvanced && (
             <div className="advanced-box">
