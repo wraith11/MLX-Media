@@ -651,7 +651,7 @@ function SettingsPage({
                     <strong>{m.name}</strong>
                     <span className="muted">
                       {m.capabilities?.join(", ") || "txt2img"}
-                      {m.downloaded ? ` · lokal · ${fmtSize(m.size_bytes ?? 0)}` : " · nicht lokal"}
+                      {m.downloaded ? ` · Heruntergeladen · ${fmtSize(m.size_bytes ?? 0)}` : " · nicht lokal"}
                     </span>
                   </div>
                   <div className="model-manage-actions">
@@ -668,8 +668,8 @@ function SettingsPage({
                       </button>
                     )}
                     {m.downloaded && (
-                      <button className="btn btn-danger" onClick={() => remove(m.name)} disabled={delBusy || busy !== null}>
-                        {delBusy ? <Spinner /> : <Trash2 size={15} />} Löschen
+                      <button className="btn" onClick={() => remove(m.name)} disabled={delBusy || busy !== null}>
+                        {delBusy ? <Spinner /> : <Trash2 size={15} />} Heruntergeladen · Löschen
                       </button>
                     )}
                   </div>
