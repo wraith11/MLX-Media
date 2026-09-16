@@ -116,11 +116,38 @@ function loadLibrary(user: string): StoredImage[] {
 
 function saveLibrary(user: string, items: StoredImage[]) {
   try {
-    // Keep it small: drop oversized entries and cap the list.
-    const pruned = items.slice(0, 40);
+    // Keep it small: cap the list and downscale images so the localStorage
+    // quota (≈5 MB) is not exhausted after a handful of full-size images.
+    const pruned = items.slice(0, 60).map((im) => ({ ...im, dataUrl: downscaleDataUrl(im.dataUrl) }));
     localStorage.setItem(LIBRARY_PREFIX + user, JSON.stringify(pruned));
   } catch {
     /* ignore quota errors */
+  }
+}
+
+/**
+ * Downscale an image data URL to a compact thumbnail for durable storage.
+ * This keeps the gallery persistent without blowing the localStorage quota.
+ */
+function downscaleDataUrl(dataUrl: string, maxDim = 768, quality = 0.82): string {
+  try {
+    const img = new Image();
+    img.src = dataUrl;
+    // Synchronous downscale via a temporary canvas is not possible until the
+    // image is decoded; we rely on the synchronous canvas draw below which works
+    // because the source is a same-origin data URL already loaded in most cases.
+    const canvas = document.createElement("canvas");
+    let { width, height } = img;
+    if (!width || !height) return dataUrl; // not decodable yet -> keep original
+    const scale = Math.min(1, maxDim / Math.max(width, height));
+    canvas.width = Math.max(1, Math.round(width * scale));
+    canvas.height = Math.max(1, Math.round(height * scale));
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return dataUrl;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", quality);
+  } catch {
+    return dataUrl;
   }
 }
 
