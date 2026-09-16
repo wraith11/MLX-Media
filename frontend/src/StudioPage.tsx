@@ -403,15 +403,15 @@ export default function StudioPage({
           {showGenAdvanced && (
             <div className="advanced-box">
               <div className="grid-2">
-                <Field label={`Schritte: ${genSteps === "" ? "Standard" : genSteps}`}>
-                  <input type="number" value={genSteps} onChange={(e) => setGenSteps(e.target.value === "" ? "" : Number(e.target.value))} min={1} max={50} placeholder="Standard (4)" />
+                <Field label={`Schritte: ${genSteps}`}>
+                  <input type="number" value={genSteps} onChange={(e) => setGenSteps(e.target.value === "" ? 4 : Number(e.target.value))} min={1} max={50} />
                 </Field>
-                <Field label="Seed (leer = zufällig)">
+                <Field label="Seed">
                   <input type="number" value={genSeed} onChange={(e) => setGenSeed(e.target.value === "" ? "" : Number(e.target.value))} min={0} placeholder="Zufällig" />
                 </Field>
               </div>
-              <Field label={`Guidance: ${genGuidance === "" ? "Standard" : genGuidance}`}>
-                <input type="number" value={genGuidance} onChange={(e) => setGenGuidance(e.target.value === "" ? "" : Number(e.target.value))} min={0} step={0.5} />
+              <Field label={`Guidance: ${genGuidance}`}>
+                <input type="number" value={genGuidance} onChange={(e) => setGenGuidance(e.target.value === "" ? 3.5 : Number(e.target.value))} min={0} step={0.5} />
               </Field>
             </div>
           )}
