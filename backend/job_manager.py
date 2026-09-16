@@ -320,8 +320,9 @@ class JobManager:
         The FLUX.2 img2img edit is generated and composited into the mask.
         """
         from backend.flux_manager import generate_image_inpaint_gradio
-        from backend.api_server import _decode_base64_image
+        from backend.api_server import _decode_base64_image, _resolve_model_from_payload
 
+        model = _resolve_model_from_payload(params)
         prompt = params.get("prompt", "")
         init_images = params.get("init_images") or params.get("images") or []
         if not init_images:
