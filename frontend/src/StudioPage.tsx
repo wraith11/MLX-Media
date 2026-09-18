@@ -30,6 +30,7 @@ import {
   isTerminal,
   maskFromText,
   submitGenerate,
+  urlToDataUrl,
   type Job,
   type StoredImage,
 } from "./mediaApi";
