@@ -289,6 +289,10 @@ class APIServer(BaseHTTPRequestHandler):
         # New v1 endpoints
         if path == "/api/v1/health":
             return self.handle_health()
+        if path == "/api/v1/library":
+            return self.handle_library_list()
+        if path.startswith("/api/v1/library/file/"):
+            return self.handle_library_file(path[len("/api/v1/library/file/"):])
         if path == "/api/v1/models":
             return self.handle_v1_models()
         if path == "/api/v1/cache/status":
