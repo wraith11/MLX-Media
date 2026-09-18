@@ -832,14 +832,8 @@ export default function App() {
   const updateSettings = (s: AppSettings) => {
     setSettings(s);
     saveSettings(s);
-    // Re-apply auto-delete immediately.
-    let items = loadLibrary(activeUser);
-    if (s.autoDeleteDays > 0) {
-      const cutoff = Date.now() - s.autoDeleteDays * 24 * 3600 * 1000;
-      items = items.filter((im) => im.favorite || im.createdAt >= cutoff);
-      void saveLibrary(activeUser, items);
-    }
-    setLibrary(items);
+    // Auto-delete is applied when the library is (re)loaded from disk.
+    void loadDiskLibrary();
   };
 
   const switchUser = (name: string) => {
