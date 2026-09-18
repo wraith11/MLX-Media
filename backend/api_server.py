@@ -374,6 +374,12 @@ class APIServer(BaseHTTPRequestHandler):
             return self.handle_options_update()
         if path == "/api/v1/generate":
             return self.handle_generate()
+        if path == "/api/v1/library":
+            return self.handle_library_save()
+        if path == "/api/v1/library/favorite":
+            return self.handle_library_favorite()
+        if path == "/api/v1/library/delete-day":
+            return self.handle_library_delete_day()
         if path == "/api/v1/cache/config":
             return self.handle_cache_config()
         if path == "/api/v1/cache/unload":
