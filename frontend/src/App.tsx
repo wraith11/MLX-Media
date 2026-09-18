@@ -752,7 +752,11 @@ export default function App() {
   // as a mirror; the authoritative store is on disk).
   const loadDiskLibrary = async () => {
     try {
-      const items = await fetchLibrary(activeUser);
+      let items = await fetchLibrary(activeUser);
+      if (settings.autoDeleteDays > 0) {
+        const cutoff = Date.now() - settings.autoDeleteDays * 24 * 3600 * 1000;
+        items = items.filter((im) => im.favorite || im.createdAt >= cutoff);
+      }
       setLibrary(items);
       cacheLibrary(activeUser, items);
     } catch {
