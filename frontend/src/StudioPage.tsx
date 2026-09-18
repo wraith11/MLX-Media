@@ -566,7 +566,7 @@ export default function StudioPage({
                   {group.items.map((item) => (
                     <div className={item.favorite ? "result-card is-fav" : "result-card"} key={item.id}>
                       <button className="gallery-img-btn" onClick={() => loadFromGallery(item)} title="In den Arbeitsbereich laden">
-                        <img src={item.dataUrl} alt={item.prompt} />
+                        <img src={item.url ?? item.dataUrl} alt={item.prompt} />
                       </button>
                       <div className="gallery-star">
                         <button
