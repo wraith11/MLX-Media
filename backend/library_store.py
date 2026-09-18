@@ -82,7 +82,7 @@ def save_image(user: str, image_b64: str, prompt: str = "", favorite: bool = Fal
         "prompt": prompt or "",
         "createdAt": now_ms,
         "favorite": bool(favorite),
-        "url": f"/api/v1/library/{user}/{img_id}.png",
+        "url": f"/api/v1/library/file/{user}/{img_id}.png",
     }
     items.append(rec)
     # Cap the index (files stay on disk; only the visible list is bounded).
