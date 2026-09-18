@@ -267,8 +267,16 @@ export default function StudioPage({
   };
 
   /** Load an image from the gallery into the workspace. */
-  const loadFromGallery = (item: StoredImage) => {
-    setCurrent(item.dataUrl);
+  const loadFromGallery = async (item: StoredImage) => {
+    let src = item.dataUrl;
+    if (!src && item.url) {
+      try {
+        src = await urlToDataUrl(item.url);
+      } catch {
+        src = item.url;
+      }
+    }
+    setCurrent(src || null);
     setCurrentPrompt(item.prompt);
     setMask(null);
     setMaskSource(null);
