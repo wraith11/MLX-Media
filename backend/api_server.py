@@ -1281,7 +1281,6 @@ class APIServer(BaseHTTPRequestHandler):
             "status": "ok",
             "timestamp": time.time(),
         })
-        })
 
     def handle_photo_import_config(self):
         """GET local photo-import limits and privacy defaults."""
