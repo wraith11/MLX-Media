@@ -104,6 +104,7 @@ function saveUsers(users: string[]) {
 }
 
 function loadLibrary(user: string): StoredImage[] {
+  // Local synchronous cache (kept small) — real data lives on disk via the API.
   try {
     const raw = localStorage.getItem(LIBRARY_PREFIX + user);
     if (!raw) return [];
@@ -114,41 +115,13 @@ function loadLibrary(user: string): StoredImage[] {
   }
 }
 
-async function saveLibrary(user: string, items: StoredImage[]) {
+function cacheLibrary(user: string, items: StoredImage[]) {
+  // Only a light mirror of metadata + URLs (no base64), so quota is a non-issue.
   try {
-    // Cap the list and downscale images so the localStorage quota (≈5 MB) is
-    // not exhausted after a handful of full-size images.
-    const pruned = items.slice(0, 60);
-    const stored = await Promise.all(
-      pruned.map(async (im) => ({ ...im, dataUrl: await downscaleDataUrl(im.dataUrl) })),
-    );
-    localStorage.setItem(LIBRARY_PREFIX + user, JSON.stringify(stored));
+    localStorage.setItem(LIBRARY_PREFIX + user, JSON.stringify(items.slice(0, 300)));
   } catch {
-    /* ignore quota errors */
+    /* ignore */
   }
-}
-
-/** Downscale an image data URL to a compact thumbnail for durable storage. */
-function downscaleDataUrl(dataUrl: string, maxDim = 768, quality = 0.82): Promise<string> {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      try {
-        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.max(1, Math.round(img.width * scale));
-        canvas.height = Math.max(1, Math.round(img.height * scale));
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return resolve(dataUrl);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL("image/jpeg", quality));
-      } catch {
-        resolve(dataUrl);
-      }
-    };
-    img.onerror = () => resolve(dataUrl);
-    img.src = dataUrl;
-  });
 }
 
 /** Local day key (YYYY-MM-DD) used to group the gallery. */
