@@ -177,6 +177,75 @@ export async function fetchQueue(): Promise<QueueInfo> {
   return requestJson<QueueInfo>("/api/v1/queue");
 }
 
+// ── Library (disk-backed) ────────────────────────────────────────
+
+/** List all stored images for a user (disk-backed, no quota). */
+export async function fetchLibrary(user: string): Promise<StoredImage[]> {
+  const res = await requestJson<{ images: StoredImage[] }>(
+    `/api/v1/library?user=${encodeURIComponent(user)}`,
+  );
+  return res.images ?? [];
+}
+
+/** Persist an image (base64/data URL) to disk; returns the stored record. */
+export async function saveLibraryImage(
+  user: string,
+  dataUrl: string,
+  prompt: string,
+  favorite?: boolean,
+): Promise<StoredImage> {
+  return requestJson<StoredImage>("/api/v1/library", {
+    method: "POST",
+    body: JSON.stringify({
+      user,
+      image: dataUrl,
+      prompt: prompt ?? "",
+      favorite: !!favorite,
+    }),
+  });
+}
+
+/** Set/unset the favorite flag on a stored image. */
+export async function setLibraryFavorite(
+  user: string,
+  id: string,
+  favorite: boolean,
+): Promise<StoredImage[]> {
+  const res = await requestJson<{ images: StoredImage[] }>("/api/v1/library/favorite", {
+    method: "POST",
+    body: JSON.stringify({ user, id, favorite }),
+  });
+  return res.images ?? [];
+}
+
+/** Delete all images of a day (keeps favorites). */
+export async function deleteLibraryDay(user: string, day: string): Promise<StoredImage[]> {
+  const res = await requestJson<{ images: StoredImage[] }>("/api/v1/library/delete-day", {
+    method: "POST",
+    body: JSON.stringify({ user, day }),
+  });
+  return res.images ?? [];
+}
+
+/** Delete a single stored image. */
+export async function deleteLibraryImage(user: string, id: string): Promise<{ removed: boolean }> {
+  return requestJson(`/api/v1/library/${encodeURIComponent(id)}?user=${encodeURIComponent(user)}`, {
+    method: "DELETE",
+  });
+}
+
+/** Convert a disk-served URL back to an in-memory data URL (for editing). */
+export async function urlToDataUrl(url: string): Promise<string> {
+  const resp = await fetch(url, { cache: "no-store" });
+  const blob = await resp.blob();
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Could not load image"));
+    reader.readAsDataURL(blob);
+  });
+}
+
 export interface CacheModelEntry {
   key: string;
   model: string;
