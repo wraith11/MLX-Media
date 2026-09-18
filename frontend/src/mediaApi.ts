@@ -69,7 +69,8 @@ export interface ModelsResult {
 
 export interface StoredImage {
   id: string;
-  dataUrl: string;
+  dataUrl: string; // in-memory data URL for the workspace (if available)
+  url?: string;    // disk-served URL for the gallery (persistent)
   prompt: string;
   createdAt: number;
   favorite?: boolean;
