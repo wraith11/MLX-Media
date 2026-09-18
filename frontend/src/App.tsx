@@ -748,15 +748,21 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
 
-  // Keep library in sync with the active user, applying auto-delete.
-  useEffect(() => {
-    let items = loadLibrary(activeUser);
-    if (settings.autoDeleteDays > 0) {
-      const cutoff = Date.now() - settings.autoDeleteDays * 24 * 3600 * 1000;
-      items = items.filter((im) => im.favorite || im.createdAt >= cutoff);
-      void saveLibrary(activeUser, items);
+  // Load the library from disk for the active user (applies auto-delete client-side
+  // as a mirror; the authoritative store is on disk).
+  const loadDiskLibrary = async () => {
+    try {
+      const items = await fetchLibrary(activeUser);
+      setLibrary(items);
+      cacheLibrary(activeUser, items);
+    } catch {
+      // Fall back to the local mirror on network failure.
+      setLibrary(loadLibrary(activeUser));
     }
-    setLibrary(items);
+  };
+
+  useEffect(() => {
+    void loadDiskLibrary();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeUser]);
 
@@ -769,9 +775,18 @@ export default function App() {
   const notify = (msg: string) => setNotice(msg);
 
   const onGenerated = (img: StoredImage) => {
-    const next = [...library, img];
-    setLibrary(next);
-    void saveLibrary(activeUser, next);
+    // Persist to disk (returns a stored record with a stable url), then add it.
+    void (async () => {
+      try {
+        const stored = await saveLibraryImage(activeUser, img.dataUrl, img.prompt, img.favorite);
+        const rec = { ...stored, dataUrl: img.dataUrl };
+        const next = [...library, rec];
+        setLibrary(next);
+        cacheLibrary(activeUser, next);
+      } catch (err) {
+        notify(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
+      }
+    })();
   };
 
   const onDelete = (id: string) => {
@@ -782,26 +797,36 @@ export default function App() {
     }
     const next = library.filter((item) => item.id !== id);
     setLibrary(next);
-    void saveLibrary(activeUser, next);
+    cacheLibrary(activeUser, next);
+    void deleteLibraryImage(activeUser, id).catch(() => {});
   };
 
   /** Delete a whole day, skipping favorites. */
-  const onDeleteDay = (dayKey: string) => {
-    const next = library.filter((item) => {
-      const k = dayKeyOf(item.createdAt);
-      if (k !== dayKey) return true;
-      return item.favorite; // keep favorites
-    });
-    setLibrary(next);
-    void saveLibrary(activeUser, next);
+  const onDeleteDay = async (dayKey: string) => {
+    try {
+      const items = await deleteLibraryDay(activeUser, dayKey);
+      setLibrary(items);
+      cacheLibrary(activeUser, items);
+    } catch (err) {
+      notify(err instanceof Error ? err.message : "Tag-Löschen fehlgeschlagen.");
+    }
   };
 
-  const toggleFavorite = (id: string) => {
-    const next = library.map((item) =>
-      item.id === id ? { ...item, favorite: !item.favorite } : item
+  const toggleFavorite = async (id: string) => {
+    const target = library.find((item) => item.id === id);
+    if (!target) return;
+    const newVal = !target.favorite;
+    const optimistic = library.map((item) =>
+      item.id === id ? { ...item, favorite: newVal } : item
     );
-    setLibrary(next);
-    void saveLibrary(activeUser, next);
+    setLibrary(optimistic);
+    try {
+      const items = await setLibraryFavorite(activeUser, id, newVal);
+      setLibrary(items);
+      cacheLibrary(activeUser, items);
+    } catch {
+      setLibrary(optimistic);
+    }
   };
 
   const updateSettings = (s: AppSettings) => {
