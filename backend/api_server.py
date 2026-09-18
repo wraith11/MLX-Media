@@ -1281,11 +1281,6 @@ class APIServer(BaseHTTPRequestHandler):
             "status": "ok",
             "timestamp": time.time(),
         })
-    def handle_health(self):
-        """GET /api/v1/health"""
-        return _json_response(self, {
-            "status": "ok",
-            "timestamp": time.time(),
         })
 
     def handle_photo_import_config(self):
