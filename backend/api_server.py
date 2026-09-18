@@ -1181,6 +1181,106 @@ class APIServer(BaseHTTPRequestHandler):
 
     # ── System info endpoints ───────────────────────────────────────
 
+    # ── Library (disk-backed, quota-free) ───────────────────────────
+
+    def _library_user(self):
+        from urllib.parse import urlparse, parse_qs
+        q = parse_qs(urlparse(self.path).query)
+        return (q.get("user") or ["default"])[0]
+
+    def handle_library_list(self):
+        """GET /api/v1/library?user=... - list stored images."""
+        from backend import library_store
+        user = self._library_user()
+        return _json_response(self, {"images": library_store.list_images(user)})
+
+    def handle_library_save(self):
+        """POST /api/v1/library - persist an image to disk."""
+        from backend import library_store
+
+        try:
+            data = self._read_json()
+        except Exception as exc:
+            return _bad_request(self, str(exc))
+        user = (data.get("user") or "").strip() or "default"
+        image = data.get("image")
+        if not image:
+            return _bad_request(self, "image is required (base64/data URL)")
+        try:
+            rec = library_store.save_image(
+                user,
+                image,
+                prompt=data.get("prompt", ""),
+                favorite=bool(data.get("favorite", False)),
+            )
+        except Exception as exc:
+            return _bad_request(self, f"Save failed: {exc}", status=500)
+        return _json_response(self, rec, status=201)
+
+    def handle_library_favorite(self):
+        """POST /api/v1/library/favorite - toggle favorite on an image."""
+        from backend import library_store
+
+        try:
+            data = self._read_json()
+        except Exception as exc:
+            return _bad_request(self, str(exc))
+        user = (data.get("user") or "").strip() or "default"
+        items = library_store.set_favorite(
+            user, data.get("id", ""), bool(data.get("favorite", False))
+        )
+        return _json_response(self, {"images": items})
+
+    def handle_library_delete_day(self):
+        """POST /api/v1/library/delete-day - delete all images of a day (keeps favorites)."""
+        from backend import library_store
+
+        try:
+            data = self._read_json()
+        except Exception as exc:
+            return _bad_request(self, str(exc))
+        user = (data.get("user") or "").strip() or "default"
+        items = library_store.delete_day(user, data.get("day", ""))
+        return _json_response(self, {"images": items})
+
+    def handle_library_delete(self, rest: str):
+        """DELETE /api/v1/library/<id>?user=... - delete one image."""
+        from backend import library_store
+        img_id = rest.split("/")[0]
+        user = self._library_user()
+        removed = library_store.delete_image(user, img_id)
+        return _json_response(self, {"removed": removed})
+
+    def handle_library_file(self, rest: str):
+        """GET /api/v1/library/file/<user>/<id>.png - serve a stored image."""
+        from backend import library_store
+        parts = rest.split("/")
+        if len(parts) < 2:
+            return _bad_request(self, "Invalid library file path", status=404)
+        user = parts[0]
+        img_id = parts[1]
+        if "." in img_id:
+            img_id = img_id.split(".", 1)[0]
+        path = library_store.get_image_path(user, img_id)
+        if path is None:
+            return _bad_request(self, "Image not found", status=404)
+        content_type, _ = mimetypes.guess_type(path.name)
+        try:
+            self.send_response(200)
+            self.send_header("Content-Type", content_type or "image/png")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Cache-Control", "public, max-age=31536000, immutable")
+            self.end_headers()
+            self.wfile.write(path.read_bytes())
+        except (OSError, BrokenPipeError):
+            return
+
+    def handle_health(self):
+        """GET /api/v1/health"""
+        return _json_response(self, {
+            "status": "ok",
+            "timestamp": time.time(),
+        })
     def handle_health(self):
         """GET /api/v1/health"""
         return _json_response(self, {
