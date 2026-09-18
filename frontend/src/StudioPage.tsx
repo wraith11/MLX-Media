@@ -581,7 +581,7 @@ export default function StudioPage({
                         <button className="btn" onClick={() => loadFromGallery(item)} title="Laden">
                           <Sparkles size={14} />
                         </button>
-                        <a className="btn" href={item.dataUrl} download={`bild-${item.id}.png`} title="Speichern">
+                        <a className="btn" href={item.url ?? item.dataUrl} download={`bild-${item.id}.png`} title="Speichern">
                           <Download size={14} />
                         </a>
                         <button
