@@ -28,8 +28,10 @@ minimal frontend** that actually talks to the local MLX backend:
     und „Tag löschen“. Ein Klick lädt das Bild in den Arbeitsbereich.
 - **Video** — **Text zu Video** über den isolierten Wan-2.1-Runner (832×480,
   16 fps). Einmalig einrichten mit `./setup.sh --video`.
-- **Benutzer** — mehrere Benutzer mit eigenem, getrenntem Bildbereich (im Browser
-  gespeichert).
+- **Benutzer** — mehrere Benutzer mit eigenem, getrenntem Bildbereich.
+- **Speicherung** — Bilder werden **auf der Festplatte** unter `output/library/<benutzer>/`
+  gespeichert (keine localStorage-Quota, keine verlustige Skalierung) und per URL angezeigt.
+  Der Browser hält nur eine kleine Metadaten-Spiegelung (URL, Prompt, Favorit, Zeitstempel).
 - **Einstellungen** — Systemstatus, aktives Modell wählen, Modelle herunterladen
   und von der Platte löschen, MLX-VLM für Text-Masken bereitstellen, plus
   **Aufbewahrung** (automatisches Löschen nach x Tagen, Standard 0 = aus) und
