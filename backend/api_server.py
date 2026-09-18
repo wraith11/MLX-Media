@@ -410,6 +410,8 @@ class APIServer(BaseHTTPRequestHandler):
         m = _RE_JOB_DETAIL.match(parsed.path)
         if m:
             return self.handle_cancel_job(m.group(1))
+        if parsed.path.startswith("/api/v1/library/"):
+            return self.handle_library_delete(parsed.path[len("/api/v1/library/"):])
         return _bad_request(self, "Unknown endpoint", status=404)
 
     # ── Shared helpers ──────────────────────────────────────────────
