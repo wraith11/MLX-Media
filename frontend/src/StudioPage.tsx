@@ -514,7 +514,7 @@ export default function StudioPage({
                   <input type="number" value={editSteps} onChange={(e) => setEditSteps(e.target.value === "" ? 4 : Number(e.target.value))} min={1} max={50} />
                 </Field>
                 <Field label={`Guidance: ${editGuidance}`}>
-                  <input type="number" value={editGuidance} onChange={(e) => setEditGuidance(e.target.value === "" ? 3.5 : Number(e.target.value))} min={0} step={0.5} />
+                  <input type="number" value={editGuidance} onChange={(e) => setEditGuidance(e.target.value === "" ? 30 : Number(e.target.value))} min={0} step={0.5} />
                 </Field>
               </div>
               <Field label={`Stärke der Änderung: ${editStrength === "" ? "Standard" : `${Math.round(Number(editStrength) * 100)}%`}`}>
@@ -523,13 +523,13 @@ export default function StudioPage({
                   min={0.1}
                   max={1}
                   step={0.05}
-                  value={editStrength === "" ? 0.75 : Number(editStrength)}
+                  value={editStrength === "" ? 0.5 : Number(editStrength)}
                   onChange={(e) => setEditStrength(Number(e.target.value))}
                 />
               </Field>
               <p className="mask-hint">
-                Stärke = wie stark der maskierte Bereich neu gezeichnet wird (100% = komplett neu).
-                Höhere Guidance lässt die Änderung der Beschreibung stärker folgen.
+                Maskiertes Inpainting nutzt FLUX.1-Fill (Guidance ~30). Die „Stärke der Änderung“
+                gilt nur für die ganzflächige Bearbeitung ohne Maske.
               </p>
             </div>
           )}
