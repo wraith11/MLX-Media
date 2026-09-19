@@ -569,14 +569,13 @@ class APIServer(BaseHTTPRequestHandler):
         return _json_response(self, response)
 
     def handle_inpaint(self):
-        from backend.flux_manager import generate_image_inpaint_gradio
+        from backend.fill_manager import generate_fill_gradio
 
         try:
             data = self._read_json()
         except Exception as exc:
             return _bad_request(self, str(exc))
 
-        model = _resolve_model_from_payload(data)
         prompt = data.get("prompt")
         init_images = data.get("init_images") or data.get("images") or []
         mask_b64 = data.get("mask") or data.get("mask_image") or data.get("masks")
@@ -592,29 +591,28 @@ class APIServer(BaseHTTPRequestHandler):
 
         width = int(data.get("width", init_img.width))
         height = int(data.get("height", init_img.height))
-        steps = data.get("steps") or data.get("num_inference_steps") or ""
-        guidance = float(data.get("guidance") or data.get("guidance_scale") or 3.5)
-        image_strength = float(data.get("image_strength", 0.75))
+        steps = data.get("steps") or data.get("num_inference_steps") or 25
+        guidance = float(data.get("guidance") or data.get("guidance_scale") or 30.0)
         num_images = int(data.get("num_images", 1))
         low_ram = bool(data.get("low_ram", False))
         seed = data.get("seed")
-        lora_files = data.get("lora_files") or None
+        if seed is None:
+            seed = "random"
+        elif not isinstance(seed, str):
+            seed = str(seed)
 
         try:
-            images, info, used_prompt = generate_image_inpaint_gradio(
+            images, info, used_prompt = generate_fill_gradio(
                 prompt,
                 init_img,
                 mask_img,
-                model,   # model
-                None,    # base_model
+                None,
                 seed,
                 height,
                 width,
                 steps,
                 guidance,
-                image_strength,
-                lora_files,
-                False,   # metadata
+                False,
                 num_images=num_images,
                 low_ram=low_ram,
             )
