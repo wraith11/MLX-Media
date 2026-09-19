@@ -315,14 +315,14 @@ class JobManager:
 
     def _run_inpaint(self, job: Job, params: dict, progress_callback):
         """
-        Mask-based inpainting using the already-loaded FLUX.2 model.
+        True mask-based inpainting via FLUX.1-Fill-dev (the model designed for
+        this). FLUX.2 Klein only does reference editing from noise and cannot
+        preserve the area outside the mask, so we use the dedicated fill model.
         Requires an init image plus a mask (white = region to regenerate).
-        The FLUX.2 img2img edit is generated and composited into the mask.
         """
-        from backend.flux_manager import generate_image_inpaint_gradio
-        from backend.api_server import _decode_base64_image, _resolve_model_from_payload
+        from backend.fill_manager import generate_fill_gradio
+        from backend.api_server import _decode_base64_image
 
-        model = _resolve_model_from_payload(params)
         prompt = params.get("prompt", "")
         init_images = params.get("init_images") or params.get("images") or []
         if not init_images:
@@ -336,35 +336,31 @@ class JobManager:
 
         width = int(params.get("width", image.width))
         height = int(params.get("height", image.height))
-        steps = str(params.get("steps", ""))
-        guidance = float(params.get("guidance", 3.5))
-        # image_strength controls how strongly the edit follows the prompt.
-        # Lower values keep closer to the original (avoid "noisy" over-edit).
-        image_strength = float(params.get("image_strength", 0.5))
+        steps = params.get("steps", 25)
+        guidance = float(params.get("guidance", 30.0))  # Fill works best with high guidance
         num_images = int(params.get("num_images", 1))
         seed = params.get("seed")
-        lora_files = params.get("lora_files") or None
+        if seed is None:
+            seed = "random"
+        elif not isinstance(seed, str):
+            seed = str(seed)
         low_ram = bool(params.get("low_ram", False))
 
         progress_callback("stage", "loading_model")
 
-        images, info, used_prompt = generate_image_inpaint_gradio(
+        images, info, used_prompt = generate_fill_gradio(
             prompt,
             image,
             mask_img,
-            model,   # model
-            None,    # base_model
+            None,
             seed,
             height,
             width,
             steps,
             guidance,
-            image_strength,
-            lora_files,
-            False,   # metadata
+            False,
             num_images=num_images,
             low_ram=low_ram,
-            progress_callback=progress_callback,
         )
 
         if job.status == JobStatus.cancelled:
