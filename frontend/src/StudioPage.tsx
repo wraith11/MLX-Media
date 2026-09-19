@@ -225,9 +225,10 @@ export default function StudioPage({
         prompt: editText.trim(),
         init_images: [dataUrlToBase64(current)],
         ...(effectiveMask ? { mask: dataUrlToBase64(effectiveMask) } : {}),
-        ...(effectiveMask ? {} : { image_strength: editStrength !== "" ? editStrength : 0.75 }),
-        ...(editSteps !== "" ? { steps: editSteps } : {}),
-        ...(editGuidance !== "" ? { guidance: editGuidance } : {}),
+        // img2img fallback (no mask) uses strength; inpaint (FLUX.1 Fill) uses guidance.
+        ...(effectiveMask ? {} : { image_strength: editStrength !== "" ? editStrength : 0.5 }),
+        ...(effectiveMask && editSteps === 4 ? {} : editSteps !== "" ? { steps: editSteps } : {}),
+        ...(effectiveMask && editGuidance === "" ? { guidance: 30 } : editGuidance !== "" ? { guidance: editGuidance } : {}),
       });
       editPollRef.current = window.setInterval(async () => {
         let job: Job;
