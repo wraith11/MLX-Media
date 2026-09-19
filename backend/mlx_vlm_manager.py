@@ -188,7 +188,7 @@ def generate_with_model(
                 image=image,
                 prompt=formatted_prompt,
                 max_tokens=max_tokens,
-                temp=temperature,
+                temperature=temperature,
                 verbose=True
             )
             return output.strip()
