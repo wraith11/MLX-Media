@@ -49,11 +49,16 @@ minimal frontend** that actually talks to the local MLX backend:
 
 ### Inpainting-Hinweis
 
-Inpainting nutzt **kein separates Fill-Modell**. FLUX.2 vereint Bildgenerierung und
-Bearbeitung in einer Architektur — der maskierte Bereich wird mit dem **bereits
-geladenen Flux2-Klein-Modell** neu gezeichnet und nur im maskierten Bereich auf das
-Original zurückgesetzt (Compositing). Es wird also **kein weiteres Modell geladen**
-und kein zusätzlicher Speicher für einen zweiten Checkpoint belegt.
+Maskenbasiertes Inpainting nutzt **FLUX.1-Fill-dev** (`backend/fill_manager.py`), das
+Modell, das für echtes Inpainting gedacht ist und die Pixel außerhalb der Maske
+unverändert lässt. Es wird beim ersten Inpainting von Hugging Face geladen
+(zusätzlich zum Flux2-Klein-Modell für die Generierung).
+
+**Warum nicht FLUX.2 für Inpainting?** FLUX.2 Klein Edit (in mflux) macht
+Referenz-basiertes Bearbeiten aus Rauschen und **ignoriert die Maske** — das Ergebnis
+sind unzusammenhängende Flächen, und die Stärke-Einstellung hat keinen Einfluss.
+Für qualitatives maskenbasiertes Inpainting ist FLUX.1-Fill daher erforderlich.
+Ein separates Modell ist hier unvermeidbar; FLUX.2 kann diese Aufgabe nicht erfüllen.
 
 ### Ein-Skript-Setup
 
