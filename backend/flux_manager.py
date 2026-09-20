@@ -1469,13 +1469,33 @@ def generate_image_inpaint_gradio(
         if edited.size != (crop_w, crop_h):
             edited = edited.resize((crop_w, crop_h), Image.LANCZOS)
 
-        # Feather the mask edges so the seam blends into the surrounding context.
-        feather = max(8, min(crop_w, crop_h) // 16)
-        soft_mask = crop_mask.filter(ImageFilter.GaussianBlur(feather)).convert("L")
+        # Convert crop mask to a plain numpy float array (0..1) for a robust blend.
+        # `mask` may be a PIL image backed by a numpy view; force a clean copy.
+        if isinstance(crop_mask, np.ndarray):
+            crop_arr = np.asarray(crop_mask, dtype=np.float32) / 255.0
+        else:
+            crop_arr = np.asarray(crop_mask.convert("L"), dtype=np.float32) / 255.0
+        if crop_arr.ndim == 3:
+            crop_arr = crop_arr[:, :, 0]
 
-        composite = input_image.convert("RGB").copy()
-        composite.paste(edited, (left, top), soft_mask)
+        # Feather with a simple box blur over a few passes (numpy-only, no PIL filter).
+        feather = max(4, min(crop_w, crop_h) // 24)
+        kernel = np.ones((feather, feather), dtype=np.float32)
+        kernel /= kernel.size
+        from scipy.ndimage import convolve as _nd_convolve
+        alpha = _nd_convolve(crop_arr, kernel, mode="constant", cval=0.0)
+        alpha = np.clip(alpha, 0.0, 1.0)
 
+        # Alpha-blend the edited crop over the original, only within the region.
+        orig = input_image.convert("RGB")
+        orig_arr = np.asarray(orig, dtype=np.float32).copy()
+        edit_arr = np.asarray(edited, dtype=np.float32)
+        a = alpha[..., None]
+        region = orig_arr[top:bottom, left:right, :]
+        blended = edit_arr * a + region * (1.0 - a)
+        orig_arr[top:bottom, left:right, :] = blended
+
+        composite = Image.fromarray(np.clip(orig_arr, 0, 255).astype(np.uint8))
         print(f"Mask inpaint done (region {crop_w}x{crop_h} at {left},{top}).")
         return [composite], "Inpaint finished", prompt
 
