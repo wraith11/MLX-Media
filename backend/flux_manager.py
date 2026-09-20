@@ -1397,45 +1397,86 @@ def generate_image_inpaint_gradio(
         steps_int = 4 if not steps or str(steps).strip() == "" else int(steps)
         strength = float(image_strength) if image_strength is not None else 0.5
 
-        # Save the input to a temp file for the base img2img path.
         import tempfile, os
+        from PIL import Image, ImageFilter
+        import numpy as np
+
+        # ---- 1. Determine mask bounding box + generous context ----
+        mask = mask_image.convert("L")
+        if mask.size != input_image.size:
+            mask = mask.resize(input_image.size, Image.LANCZOS)
+        mask = mask.point(lambda p: 255 if p > 127 else 0)
+
+        m_arr = np.array(mask)
+        ys, xs = np.where(m_arr > 0)
+        if len(xs) == 0:
+            # No visible mask -> fall back to whole image.
+            left, top, right, bottom = 0, 0, input_image.width, input_image.height
+        else:
+            left, top, right, bottom = xs.min(), ys.min(), xs.max(), ys.max()
+            # Add context so the model sees surrounding content.
+            ctx = max(24, int(min(input_image.width, input_image.height) * 0.1))
+            left = max(0, left - ctx)
+            top = max(0, top - ctx)
+            right = min(input_image.width, right + ctx)
+            bottom = min(input_image.height, bottom + ctx)
+            # Keep crop large enough to be meaningful and multiple-of-friendly.
+            if (right - left) < 256:
+                pad = (256 - (right - left)) // 2
+                left = max(0, left - pad)
+                right = min(input_image.width, right + pad)
+            if (bottom - top) < 256:
+                pad = (256 - (bottom - top)) // 2
+                top = max(0, top - pad)
+                bottom = min(input_image.height, bottom + pad)
+
+        crop_w = right - left
+        crop_h = bottom - top
+        if crop_w <= 0 or crop_h <= 0:
+            left, top, right, bottom = 0, 0, input_image.width, input_image.height
+            crop_w, crop_h = input_image.width, input_image.height
+
+        # ---- 2. Crop input + mask to the region ----
+        crop_img = input_image.convert("RGB").crop((left, top, right, bottom))
+        crop_mask = mask.crop((left, top, right, bottom))
+
+        # Save cropped input for the base img2img path.
         fd, input_path = tempfile.mkstemp(suffix=".png")
         with os.fdopen(fd, "wb") as f:
-            input_image.convert("RGB").save(f, format="PNG")
+            crop_img.save(f, format="PNG")
 
         if progress_callback:
-            progress_callback("image_start", {"current_image": 1, "total_images": 1, "seed": seed})
+            progress_callback("stage", "inpainting_region")
         import random as _random
         _seed_val = seed
         if _seed_val in (None, "", "None", "random"):
             _seed_val = _random.randint(0, 2**32 - 1)
+
         generated = flux.generate_image(
             seed=int(_seed_val),
             prompt=prompt,
             num_inference_steps=steps_int,
-            height=height,
-            width=width,
+            height=crop_h,
+            width=crop_w,
             guidance=float(guidance),
             image_path=input_path,
             image_strength=strength,
         )
         edited = generated.image
-        if progress_callback:
-            progress_callback("image_complete", {"current_image": 1, "total_images": 1})
         os.remove(input_path)
 
-        # Composite: keep original outside the mask, edited inside the mask.
-        from PIL import Image
+        # ---- 3. Stitch: paste only the mask region back onto the original ----
+        if edited.size != (crop_w, crop_h):
+            edited = edited.resize((crop_w, crop_h), Image.LANCZOS)
 
-        mask = mask_image.convert("L")
-        if mask.size != input_image.size:
-            mask = mask.resize(input_image.size, Image.LANCZOS)
-        mask = mask.point(lambda p: 255 if p > 127 else 0)
-        if edited.size != input_image.size:
-            edited = edited.resize(input_image.size, Image.LANCZOS)
-        composite = Image.composite(edited, input_image.convert("RGB"), mask)
+        # Feather the mask edges so the seam blends into the surrounding context.
+        feather = max(8, min(crop_w, crop_h) // 16)
+        soft_mask = crop_mask.filter(ImageFilter.GaussianBlur(feather)).convert("L")
 
-        print(f"Mask inpaint done.")
+        composite = input_image.convert("RGB").copy()
+        composite.paste(edited, (left, top), soft_mask)
+
+        print(f"Mask inpaint done (region {crop_w}x{crop_h} at {left},{top}).")
         return [composite], "Inpaint finished", prompt
 
     except Exception as e:
