@@ -1405,8 +1405,12 @@ def generate_image_inpaint_gradio(
 
         if progress_callback:
             progress_callback("image_start", {"current_image": 1, "total_images": 1, "seed": seed})
+        import random as _random
+        _seed_val = seed
+        if _seed_val in (None, "", "None", "random"):
+            _seed_val = _random.randint(0, 2**32 - 1)
         generated = flux.generate_image(
-            seed=int(seed) if seed not in (None, "", "None") else None,
+            seed=int(_seed_val),
             prompt=prompt,
             num_inference_steps=steps_int,
             height=height,
