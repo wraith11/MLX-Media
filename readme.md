@@ -50,16 +50,18 @@ minimal frontend** that actually talks to the local MLX backend:
 ### Inpainting-Hinweis
 
 Maskenbasiertes Inpainting nutzt das **Flux2-Klein-Modell** (dieselbe Architektur wie
-die Generierung, kein separates Modell). Es verwendet die **Basis-Klasse `Flux2Klein`**
-mit `image_path` + `image_strength`: die Generation startet von den **encodierten
-Original-Latents** (echtes Denoising nahe am Eingabebild) und wird dann **nur innerhalb
-der Maske** auf das Original zurückgesetzt. Pixel außerhalb der Maske bleiben exakt
-erhalten.
+die Generierung, kein separates Modell) nach dem in ComfyUI etablierten
+**Crop → lokales img2img → Stitch**-Verfahren:
+
+1. **Crop:** Die Maske wird mit großzügigem Kontext auf eine kleine Region zugeschnitten,
+   sodass das Modell nur den relevanten Bereich samt Umgebung sieht.
+2. **Lokales img2img:** Die Region wird mit der **Basis-Klasse `Flux2Klein`** neu gezeichnet
+   (img2img startet von den encodierten Original-Latents, nahe am Eingabebild).
+3. **Stitch:** Das Ergebnis wird **nur innerhalb der Maske** mit weichgezeichneten Rändern
+   zurück aufs Original gesetzt. Pixel außerhalb bleiben exakt erhalten.
 
 **Hinweis zur „Stärke der Änderung":** Sie steuert, wie stark das Ergebnis vom Original
-abweicht (höher = mehr Neuzeichnung im maskierten Bereich). FLUX.2-Edits aus Rauschen
-werden bewusst nicht genutzt, da sie die Maske ignorieren und inkohärente Flächen
-erzeugen.
+abweicht (höher = mehr Neuzeichnung im maskierten Bereich).
 
 ### Ein-Skript-Setup
 
