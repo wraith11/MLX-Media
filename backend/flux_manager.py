@@ -1398,7 +1398,7 @@ def generate_image_inpaint_gradio(
         strength = float(image_strength) if image_strength is not None else 0.5
 
         import tempfile, os
-        from PIL import Image, ImageFilter
+        from PIL import Image
         import numpy as np
 
         # ---- 1. Determine mask bounding box + generous context ----
