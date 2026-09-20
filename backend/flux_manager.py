@@ -1332,29 +1332,93 @@ def generate_image_inpaint_gradio(
     image_strength, lora_files, metadata, num_images=1, low_ram=False, progress_callback=None
 ):
     """
-    Mask-based inpainting using the already-loaded FLUX.2 model (no second model).
+    True mask-based inpainting using the FLUX.2 base class (no separate model).
 
-    FLUX.2 Klein does not expose a mask parameter in mflux, so we:
-      1) run the normal FLUX.2 img2img edit on the whole image,
-      2) composite the result back onto the original, keeping only the pixels
-         inside the white mask region (everything outside stays untouched).
-
-    This is true masked inpainting that reuses the loaded generation model.
+    We deliberately use the base ``Flux2Klein`` (not ``Flux2KleinEdit``) because
+    its img2img path starts from the *encoded original latents* (true denoising
+    close to the input) rather than generating from noise. Steps:
+      1) run base FLUX.2 img2img (image_path + image_strength),
+      2) composite the result back onto the original only inside the white mask,
+         so pixels outside the mask stay untouched.
     """
+    from backend import model_cache
+    from backend.mflux_compat import ModelConfig as MfluxModelConfig
+    from backend.model_manager import (
+        resolve_local_path,
+        strip_quant_suffix,
+        normalize_base_model_choice,
+        resolve_mflux_model_config,
+        get_custom_model_config,
+    )
+
     try:
-        print(f"\n--- Generating mask inpaint (FLUX.2) ---")
+        print(f"\n--- Generating mask inpaint (FLUX.2 base) ---")
         print(f"Model: {model}")
         print(f"Prompt: {prompt}")
         print(f"Image strength: {image_strength}")
 
-        images, info, used_prompt = generate_image_i2i_gradio(
-            prompt, input_image, model, base_model, seed, height, width, steps, guidance,
-            image_strength, lora_files, metadata,
-            num_images=num_images, low_ram=low_ram, progress_callback=progress_callback,
-        )
+        from mflux.models.flux2.variants.txt2img.flux2_klein import Flux2Klein
 
-        if not images:
-            return [], info or "Inpaint produced no image", prompt
+        base_model_name = strip_quant_suffix(model)
+        model_path = resolve_local_path(base_model_name)
+        config_name = base_model_name
+        if isinstance(base_model_name, str) and "-mlx-" in base_model_name:
+            config_name = base_model_name.split("-mlx-")[0]
+            try:
+                cfg = get_custom_model_config(base_model_name)
+                if getattr(cfg, "model_name", None) and "/" in str(cfg.model_name):
+                    model_path = str(cfg.model_name)
+            except Exception:
+                pass
+        model_config = resolve_mflux_model_config(config_name, None)
+
+        if "-8-bit" in model:
+            quantize = 8
+        elif "-4-bit" in model:
+            quantize = 4
+        elif "-6-bit" in model:
+            quantize = 6
+        elif "-3-bit" in model:
+            quantize = 3
+        else:
+            quantize = None
+
+        if progress_callback:
+            progress_callback("stage", "loading_model")
+
+        # Instantiate the base class (img2img-capable, latent-init from the input).
+        flux = Flux2Klein(
+            model_config=model_config,
+            quantize=quantize,
+            model_path=str(model_path) if model_path else None,
+        )
+        model_cache.put(f"inpaint::{model}", flux)
+
+        steps_int = 4 if not steps or str(steps).strip() == "" else int(steps)
+        strength = float(image_strength) if image_strength is not None else 0.5
+
+        # Save the input to a temp file for the base img2img path.
+        import tempfile, os
+        fd, input_path = tempfile.mkstemp(suffix=".png")
+        with os.fdopen(fd, "wb") as f:
+            input_image.convert("RGB").save(f, format="PNG")
+
+        if progress_callback:
+            progress_callback("image_start", {"current_image": 1, "total_images": 1, "seed": seed})
+        generated = flux.generate_image(
+            seed=int(seed) if seed not in (None, "", "None") else None,
+            prompt=prompt,
+            num_inference_steps=steps_int,
+            height=height,
+            width=width,
+            guidance=float(guidance),
+            image_path=input_path,
+            image_strength=strength,
+        )
+        edited = generated.image
+        if progress_callback:
+            progress_callback("image_complete", {"current_image": 1, "total_images": 1})
+        os.remove(input_path)
 
         # Composite: keep original outside the mask, edited inside the mask.
         from PIL import Image
@@ -1363,16 +1427,12 @@ def generate_image_inpaint_gradio(
         if mask.size != input_image.size:
             mask = mask.resize(input_image.size, Image.LANCZOS)
         mask = mask.point(lambda p: 255 if p > 127 else 0)
+        if edited.size != input_image.size:
+            edited = edited.resize(input_image.size, Image.LANCZOS)
+        composite = Image.composite(edited, input_image.convert("RGB"), mask)
 
-        composited = []
-        for edited in images:
-            if edited.size != input_image.size:
-                edited = edited.resize(input_image.size, Image.LANCZOS)
-            composite = Image.composite(edited, input_image.convert("RGB"), mask)
-            composited.append(composite)
-
-        print(f"Mask inpaint done: {len(composited)} image(s)")
-        return composited, info or "Inpaint finished", used_prompt
+        print(f"Mask inpaint done.")
+        return [composite], "Inpaint finished", prompt
 
     except Exception as e:
         print(f"Error in mask inpaint: {str(e)}")
