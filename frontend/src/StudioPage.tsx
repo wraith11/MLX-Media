@@ -528,8 +528,9 @@ export default function StudioPage({
                 />
               </Field>
               <p className="mask-hint">
-                Maskiertes Inpainting nutzt FLUX.1-Fill (Guidance ~30). Die „Stärke der Änderung“
-                gilt nur für die ganzflächige Bearbeitung ohne Maske.
+                Maskiertes Inpainting nutzt das Flux2-Klein-Modell (kein separates Modell) und
+                zeichnet nur den maskierten Bereich neu. Die „Stärke der Änderung" steuert, wie
+                stark das Ergebnis vom Original abweicht.
               </p>
             </div>
           )}
