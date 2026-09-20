@@ -315,14 +315,14 @@ class JobManager:
 
     def _run_inpaint(self, job: Job, params: dict, progress_callback):
         """
-        True mask-based inpainting via FLUX.1-Fill-dev (the model designed for
-        this). FLUX.2 Klein only does reference editing from noise and cannot
-        preserve the area outside the mask, so we use the dedicated fill model.
-        Requires an init image plus a mask (white = region to regenerate).
+        True mask-based inpainting on FLUX.2 (base class): starts from the
+        encoded original latents, denoises, and composites back only inside the
+        mask so pixels outside stay untouched. Requires init image + mask.
         """
-        from backend.fill_manager import generate_fill_gradio
-        from backend.api_server import _decode_base64_image
+        from backend.flux_manager import generate_image_inpaint_gradio
+        from backend.api_server import _decode_base64_image, _resolve_model_from_payload
 
+        model = _resolve_model_from_payload(params)
         prompt = params.get("prompt", "")
         init_images = params.get("init_images") or params.get("images") or []
         if not init_images:
@@ -336,31 +336,33 @@ class JobManager:
 
         width = int(params.get("width", image.width))
         height = int(params.get("height", image.height))
-        steps = params.get("steps", 25)
-        guidance = float(params.get("guidance", 30.0))  # Fill works best with high guidance
+        steps = params.get("steps", "")
+        guidance = float(params.get("guidance", 3.5))
+        image_strength = float(params.get("image_strength", 0.5))
         num_images = int(params.get("num_images", 1))
         seed = params.get("seed")
-        if seed is None:
-            seed = "random"
-        elif not isinstance(seed, str):
-            seed = str(seed)
+        lora_files = params.get("lora_files") or None
         low_ram = bool(params.get("low_ram", False))
 
         progress_callback("stage", "loading_model")
 
-        images, info, used_prompt = generate_fill_gradio(
+        images, info, used_prompt = generate_image_inpaint_gradio(
             prompt,
             image,
             mask_img,
+            model,
             None,
             seed,
             height,
             width,
             steps,
             guidance,
+            image_strength,
+            lora_files,
             False,
             num_images=num_images,
             low_ram=low_ram,
+            progress_callback=progress_callback,
         )
 
         if job.status == JobStatus.cancelled:
